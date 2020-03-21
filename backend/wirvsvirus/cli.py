@@ -30,3 +30,12 @@ def api(ctx, reload, **kwargs):
         reloader.watch_files(pathlib.Path(__file__).parent.glob("**/*.py"))
 
     uvicorn.run(app, host=settings.host)
+
+@click.command()
+def setup_db():
+    from wirvsvirus import db
+    import asyncio
+    asyncio.run(db.connect())
+    client = db.get_database()
+
+    client.helpers.create_index("email")

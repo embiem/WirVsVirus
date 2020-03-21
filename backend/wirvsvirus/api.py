@@ -131,9 +131,9 @@ async def post_demand(demand: HelperDemandModel):
 
 
 @app.post('/helpers')
-async def post_helper(helper: HelperModel):
+async def post_helper(helper: HelperModel, db: db.AsyncIOMotorDatabase = Depends(db.get_database)):
     """ Post helper."""
-    pass
+    db.helpers.insert_one(helper)
 
 
 app.add_route("/", GraphQLApp(schema=graphene.Schema(query=Query)))
