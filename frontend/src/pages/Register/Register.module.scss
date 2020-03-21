@@ -1,0 +1,14 @@
+.wrapper {
+  margin: 0 auto;
+  padding: 2em;
+}
+
+.formRow {
+  & + .formRow {
+    margin-top: 1em;
+  }
+}
+
+.submitButton {
+  float: right;
+}
