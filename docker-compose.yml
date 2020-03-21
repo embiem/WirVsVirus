@@ -17,11 +17,19 @@ services:
         extras: "[dev]"
     environment:
       WIRVSVIRUS_HOST: "0.0.0.0"
+      WIRVSVIRUS_DB_URL: "mongodb://root:pass@db:27017/default"
     command: "wirvsvirus api --reload"
     volumes:
       - './backend/wirvsvirus:/home/app/code/wirvsvirus'
+      - './backend/tests:/home/app/code/tests'
     ports:
       - "8000:8000"
     # need this to enable attaching to container and interacting with debugger
     stdin_open: true
     tty: true
+
+  db:
+    image: mongo:3.6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
