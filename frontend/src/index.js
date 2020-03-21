@@ -2,8 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { ApolloProvider } from '@apollo/react-hooks';
 import { navigate } from '@reach/router';
+import { ThemeProvider } from '@material-ui/core/styles';
 
 import { Auth0Provider } from './utils/react-auth0-spa';
+import theme from './utils/muiTheme';
 import apolloClient from './graphql/apolloClient';
 import config from './config/auth_config.json';
 import './styles/styles.scss';
@@ -25,7 +27,9 @@ ReactDOM.render(
       redirect_uri={window.location.origin}
       onRedirectCallback={onRedirectCallback}
     >
-      <App />
+      <ThemeProvider theme={theme}>
+        <App />
+      </ThemeProvider>
     </Auth0Provider>
   </ApolloProvider>,
   document.getElementById('root'),
