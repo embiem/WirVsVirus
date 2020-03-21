@@ -11,12 +11,6 @@
 #
 # Developed with ❤️ by APIs.guru | https://github.com/APIs-guru/graphql-faker
 
-enum Role {
-  Admin,
-  Logistic,
-  Medical
-}
-
 enum Activity {
   Hotline, 	# Beratung ueber Hotline
   Swap,			# Aufnahmebereich/Beratung/Abstriche
@@ -25,6 +19,12 @@ enum Activity {
   CareIntensiveMedical, # Patienten auf der Intensivstation ohne Beatmung medizinisch betreuen (Medikamente/ Infusionen/ ...)
   CareIntensiveMedicalVentilation, # Patienten auf der Intensivstation mit Beatmung medizinisch betreuen (zusätzlich steril absaugen/ Tubus umlagern/ Beatmungsgerät kennen und bei Alarmen reagieren/ ...)
   MedicalSpecialist # Beatmung verändern = Assistent/Facharzt!
+}
+
+enum RequestStatus {
+  Pending,
+  Declined,
+  Accepted
 }
 
 type Hospital {
@@ -65,9 +65,11 @@ type Qualification {
 type PersonnelRequest {
   id: ID
   hospital: Hospital!
-  role: Role!
-  amount: Int! @fake(type: number, options: {minNumber: 1, maxNumber: 10})
-  matches: [Match] @listLength(min:0, max:10)
+  helper: Helper!
+  activity: Activity!
+  startDate: String! @fake(type:pastDate)
+  endDate: String! @fake(type:futureDate)
+  status: RequestStatus!
 }
 
 type Match {
@@ -79,5 +81,6 @@ type Match {
 type Query {
   hospital(id: ID): Hospital
   helper(id: ID): Helper
-  search(activities: [Activity]): [Helper] @listLength(min: 2, max: 4)
+  search(activities: [Activity], start: String!, end: String!): [Helper] @listLength(min: 2, max: 4)
+  personnelRequests(hospitalId: ID, start: String!, end: String!): [PersonnelRequest] @listLength(min: 0, max: 10)
 }

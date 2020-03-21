@@ -52,7 +52,7 @@ const Header = () => {
         {[
           { url: '/profile', title: 'Login' },
           { url: '/register', title: 'Registrieren' },
-          { url: '/hospital/search', title: 'Kliniken-Dashboard' },
+          { url: '/hospital', title: 'Kliniken-Dashboard' },
           { url: '/profile', title: 'Helfer:Innen-Dashboard' },
           { url: '/hospital/create-invitation', title: 'Ausschreibung erstellen' },
         ].map((item) => (

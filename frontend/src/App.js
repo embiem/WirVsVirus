@@ -6,7 +6,7 @@ import './App.css';
 import Home from './Home';
 import RegisterPage from './pages/Register/Register';
 import ProfilePage from './pages/Profile/Profile';
-import SearchPage from './pages/Search/Search';
+import HospitalDashboardPage from './pages/Hospital/Dashboard';
 import CreateInvitationPage from './pages/CreateInvitation/CreateInvitation';
 import Header from './components/Header/Header';
 import { useAuth0 } from './utils/react-auth0-spa';
@@ -27,7 +27,7 @@ function App() {
         <Home path="/" />
         <RegisterPage path="/register" />
         <ProfilePage path="/profile" />
-        <SearchPage path="/hospital/search" />
+        <HospitalDashboardPage path="/hospital" />
         <CreateInvitationPage path="/hospital/create-invitation" />
       </Router>
     </>
