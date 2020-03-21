@@ -1,10 +1,17 @@
 import {
-  AppBar, Divider, Drawer, IconButton, List, ListItem, ListItemText, Toolbar, Typography, ListItemIcon,
+  AppBar,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Toolbar,
+  Typography,
+  ListItemIcon,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Inbox as InboxIcon, Mail as MailIcon, Menu,
-} from '@material-ui/icons';
+import { Inbox as InboxIcon, Mail as MailIcon, Menu } from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { useState } from 'react';
 import { Link as RouterLink } from '@reach/router';
@@ -45,13 +52,13 @@ const Header = () => {
         {[
           { url: '/', title: 'Login' },
           { url: '/register', title: 'Registrieren' },
-          { url: '/', title: 'Kliniken-Dashboard' },
+          { url: '/hospital/search', title: 'Kliniken-Dashboard' },
           { url: '/', title: 'HelferInnen-Dashboard' },
           { url: '/hospital/create-invitation', title: 'Ausschreibung erstellen' },
         ].map((item) => (
           <RouterLink to={item.url} key={item.title} className={styles.offcanvasLink}>
             <ListItem button>
-                <ListItemText primary={item.title} />
+              <ListItemText primary={item.title} />
             </ListItem>
           </RouterLink>
         ))}
