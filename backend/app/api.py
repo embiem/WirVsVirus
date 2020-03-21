@@ -15,7 +15,7 @@ app = FastAPI(
 )
 
 
-class HelpingEnum(str, Enum):
+class RoleEnum(str, Enum):
     """Capabailty a helper can have."""
     admin = 'admin'
     logistic = 'logistic'
@@ -26,11 +26,20 @@ class CapabilityEnum(str, Enum):
     """Capabailty a helper can have."""
     hotline = 'hotline'
     testing = 'testing'
-    normal = 'normal'
-    intensive = 'intensive'
-    intensive_medication = 'intensive_medication'
-    intensive_respiration = 'intensive_respiration'
-    intensive_doc = 'intensive_doc'
+    care_normal = 'care_normal'
+    care_intensive = 'care_intensive'
+    care_intensive_medical = 'care_intensive_medical'
+    care_intensive_medical_ventilation = 'care_intensive_medical_ventilation'
+    medical_specialist = 'medical_specialist'
+
+
+class Address(BaseModel):
+    """Adress schema."""
+    id: UUID
+    zip_code: int
+    street: str
+    latitude: float
+    longiture: float
 
 
 class Helper(BaseModel):
@@ -38,10 +47,10 @@ class Helper(BaseModel):
     id: UUID
     name: str
     email: EmailStr
-    address: str
+    address: Address
     phone_number: str
     capability: CapabilityEnum
-    helping_category: HelpingEnum
+    helping_category: RoleEnum
 
 
 class Hospital(BaseModel):
