@@ -1,3 +1,11 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  padding: 2em 0;
+}
+
 .wrapper {
   margin: 0 auto;
   padding: 2em;

@@ -15,7 +15,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div>
+    <div className={styles.page}>
       <Container>
         <Paper className={styles.wrapper}>
           <form noValidate autoComplete="off" onSubmit={submitForm}>
