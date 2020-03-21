@@ -17,7 +17,8 @@ class Settings(BaseSettings):
 
     # authentication settings
     auth_issuer: str = "https://dev-healthkeeper.eu.auth0.com/"
-    ath_jwk_uri: str = "https://dev-healthkeeper.eu.auth0.com/.well-known/jwks.json"
+    auth_jwks_uri: str = "https://dev-healthkeeper.eu.auth0.com/.well-known/jwks.json"
+    auth_token: str = ""  # auth token for testing
 
     class Config:
         env_prefix = "wirvsvirus_"

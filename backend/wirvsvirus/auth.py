@@ -7,7 +7,7 @@ import requests
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import JoseError
 from fastapi import FastAPI, HTTPException
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from starlette.requests import Request
 from starlette.status import HTTP_401_UNAUTHORIZED
@@ -64,11 +64,12 @@ class Auth(HTTPBearer):
             payload = jwt.decode(token, self.jwks.keys, claims_options={"iss": {"value": settings.auth_issuer}})
             payload.validate()
         except JoseError as e:
+            breakpoint()
             raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail=e.args[0])
 
         return payload
 
     async def __call__(self, request: Request) -> Optional[dict]:
-        token = await super().__call__(request)
+        credentials: HTTPAuthorizationCredentials = await super().__call__(request)
+        token = credentials.credentials
         return self.decode_jwt(token)
-
