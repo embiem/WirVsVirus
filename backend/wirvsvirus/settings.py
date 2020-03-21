@@ -1,5 +1,7 @@
 from pydantic import BaseSettings
 
+from os import environ
+
 
 class Settings(BaseSettings):
     """General settings.
@@ -10,6 +12,7 @@ class Settings(BaseSettings):
     """
     # api settings
     host: str = "127.0.0.1"
+    port: int = environ.get("PORT", 8000)
 
     # database settings
     db_db: str = "default"

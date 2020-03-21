@@ -12,6 +12,7 @@ services:
 
   backend:
     build:
+      dockerfile: dev.dockerfile
       context: ./backend
       args:
         extras: "[dev]"
