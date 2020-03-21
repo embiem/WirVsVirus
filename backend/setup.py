@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+"""setup file for wir vs virus."""
 
-"""setup file for constrainer."""
 import os
 
 from setuptools import setup
+import pathlib
 
 tests_require = ["pytest", "coverage"]
 
@@ -26,9 +26,9 @@ setup(
     version="0.0.1",
     author="bla",
     author_email="bla@example.com",
-    description="wirsvirus",
-    packages=["app"],
-    package_dir={"app": "app"},
+    description="wirvsvirus",
+    packages=["wirvsvirus"],
+    package_dir={"wirvsvirus": "wirvsvirus"},
     long_description=read("README.md"),
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
@@ -38,5 +38,5 @@ setup(
     ],
     extras_require={"dev": dev_requires, "check": check_requires, "test": tests_require},
     tests_require=tests_require,
-    entry_points={"console_scripts": "constrainer=constrainer.cli:cli"},
+    entry_points={"console_scripts": "wirvsvirus=wirvsvirus.cli:cli"},
 )
