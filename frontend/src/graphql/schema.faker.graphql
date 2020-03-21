@@ -1,0 +1,81 @@
+# This is sample SDL schema for GraphQL Faker.
+#
+# There are two directives you can use to enhance fake data:
+#   - @fake
+#   - @examples
+# Each directive has autocompletion working so start by typing @
+#
+# Press save or Cmd+Enter to apply the changes and update server. Switch to GraphiQL
+# on the left panel to immediately test your changes.
+# This tool also supports extending existing APIs. Check graphql-faker --help
+#
+# Developed with ❤️ by APIs.guru | https://github.com/APIs-guru/graphql-faker
+
+enum Role {
+  Admin,
+  Logistic,
+  Medical
+}
+
+enum Activity {
+  Hotline, 	# Beratung ueber Hotline
+  Swap,			# Aufnahmebereich/Beratung/Abstriche
+  CareNormal,	# Patienten auf Normalstation pflegen
+  CareIntensive, #Patienten auf der Intensivstation pflegen
+  CareIntensiveMedical, # Patienten auf der Intensivstation ohne Beatmung medizinisch betreuen (Medikamente/ Infusionen/ ...)
+  CareIntensiveMedicalVentilation, # Patienten auf der Intensivstation mit Beatmung medizinisch betreuen (zusätzlich steril absaugen/ Tubus umlagern/ Beatmungsgerät kennen und bei Alarmen reagieren/ ...)
+  MedicalSpecialist # Beatmung verändern = Assistent/Facharzt!
+}
+
+type Hospital {
+  id: ID
+  name: String! @fake(type:companyName, locale:de)
+  address: Address!
+  email: String! @fake(type:email, locale:de)
+  website: String @fake(type:url, locale:de)
+  phone: String! @fake(type:phoneNumber, locale:de)
+  personnelRequests: [PersonnelRequest] @listLength(min: 0, max: 10)
+}
+
+type Helper {
+  id: ID
+  name: String! @fake(type:companyName, locale:de)
+  address: Address!
+  email: String! @fake(type:email, locale:de)
+  phone: String! @fake(type:phoneNumber, locale:de)
+	vaccination: String @fake(type:imageUrl)
+  qualification: Qualification
+  matches: [Match] @listLength(min:0, max:10)
+}
+
+type Address {
+  id: ID
+  zipCode: String @fake(type:zipCode, locale:de)
+  street: String @fake(type:streetAddress, locale:de)
+  latitude: String @fake(type:latitude, locale:de)
+  longitude: String @fake(type:longitude, locale:de)
+}
+
+type Qualification {
+  id: ID
+  name: String! @fake(type:productName, locale:de)
+}
+
+type PersonnelRequest {
+  id: ID
+  hospital: Hospital!
+  role: Role!
+  amount: Int! @fake(type: number, options: {minNumber: 1, maxNumber: 10})
+  matches: [Match] @listLength(min:0, max:10)
+}
+
+type Match {
+  id: ID
+  helper: Helper!
+  personnelRequest: PersonnelRequest!
+}
+
+type Query {
+  hospital(id: ID): Hospital
+  helper(id: ID): Helper
+}
