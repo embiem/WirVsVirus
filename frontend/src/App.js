@@ -1,8 +1,8 @@
 import React from "react";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import { Router, Link } from "@reach/router";
+import { Router } from "@reach/router";
 
-import Home from './Home'
+import Home from "./Home";
 import "./App.css";
 import RegisterPage from './pages/Register/Register';
 
