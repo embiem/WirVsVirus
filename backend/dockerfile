@@ -2,6 +2,7 @@ FROM python:3.8-slim
 
 ARG username=app
 ARG uid=1000
+ARG extras=""
 
 # Add a non-root user as docker best practice
 RUN useradd --create-home --shell /bin/bash --uid ${uid} ${username}
@@ -14,11 +15,10 @@ ENV PATH="/home/${username}/.local/bin:${PATH}"
 RUN mkdir ~/code
 WORKDIR /home/${username}/code
 
-WORKDIR /app/
-
 COPY  --chown=app:app requirements.txt .
 RUN pip install --user -r requirements.txt
 
 COPY --chown=app:app . .
+RUN pip install -e ".$extras"
 
-CMD ["python"]
+CMD ["/bin/bash"]
