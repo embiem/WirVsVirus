@@ -1,10 +1,10 @@
 import React from "react";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import { Router, Link } from "@reach/router";
+import { Router } from "@reach/router";
 
-import Home from './Home'
-import SignIn from './SignIn'
-import SignUp from './SignUp'
+import Home from "./Home";
+import SignIn from "./auth/SignIn";
+import SignUp from "./auth/SignUp";
 import "./App.css";
 
 function App() {
