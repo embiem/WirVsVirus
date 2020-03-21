@@ -38,7 +38,7 @@ export default function Home() {
           <button onClick={() => loginWithRedirect({})}>Log in</button>
         )}
 
-        {isAuthenticated && <button onClick={() => logout()}>Log out</button>}
+        {isAuthenticated && <button onClick={() => logout()}>Abmelden</button>}
       </div>
     </div>
   );
