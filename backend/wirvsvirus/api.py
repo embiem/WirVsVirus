@@ -12,10 +12,14 @@ from graphene_pydantic import PydanticObjectType
 from pydantic import BaseModel, EmailStr, HttpUrl
 from starlette.graphql import GraphQLApp
 
+from wirvsvirus import db
+
 app = FastAPI(
     title="WirVsVirus", description="WirVsVirus!"
 )
 
+app.add_event_handler("startup", db.connect)
+app.add_event_handler("shutdown", db.disconnect)
 
 class RoleEnum(str, Enum):
     """Capabailty a helper can have."""
@@ -115,9 +119,9 @@ async def get_matches():
 
 
 @app.post('/matches')
-async def post_match(match: MatchModel):
+async def post_match(match: MatchModel, db: db.AsyncIOMotorDatabase = Depends(db.get_database)):
     """Post match."""
-    pass
+    db.matches.insert_one(match)
 
 
 @app.post('/demand')
