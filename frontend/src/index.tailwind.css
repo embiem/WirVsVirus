@@ -1,0 +1,41 @@
+/* @tailwind base; */
+
+.container {
+  width: 100%
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px
+  }
+}
+
+.float-right {
+  float: right
+}
+
+.mt-6 {
+  margin-top: 1.5rem
+}
+
+.fixed {
+  position: fixed
+}
