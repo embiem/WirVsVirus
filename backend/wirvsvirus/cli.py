@@ -1,4 +1,4 @@
-"""Command line interface for production planning."""
+"""Command line interface."""
 
 import click
 import pathlib
@@ -8,7 +8,7 @@ from wirvsvirus.settings import settings
 
 @click.group()
 def cli():
-    """Production planning."""
+    """Command line commands."""
 
 @cli.command()
 @click.option("--reload", is_flag=True, help="reload code when it changes")
