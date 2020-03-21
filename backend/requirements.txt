@@ -3,5 +3,7 @@ click
 requests
 motor
 graphene
-
+graphene-pydantic
+pydantic<=1.3
 pytest
+
