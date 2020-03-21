@@ -5,7 +5,7 @@ import os
 from setuptools import setup
 import pathlib
 
-tests_require = ["pytest", "coverage"]
+tests_require = ["pytest", "coverage", "pytest-mock"]
 
 check_requires = ["black", "isort", "flake8", "mypy"]
 
