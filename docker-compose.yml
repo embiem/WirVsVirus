@@ -1,18 +1,21 @@
 version: "3.7"
 
 services:
-  node:
+  frontend:
     image: node:13
     working_dir: /app
     volumes:
-      - ${PWD}/:/app
+      - ${PWD}/frontend:/app
+    ports:
+      - "8100:3000"
+    command: "yarn prod"
 
   backend:
     build: ./backend
     volumes:
       - './backend/app:/home/app/code/app'
     ports:
-      - "127.0.0.1:8000:8000"
+      - "8000:8000"
     # need this to enable attaching to container and interacting with debugger
     stdin_open: true
     tty: true

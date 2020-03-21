@@ -27,6 +27,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "prod": "yarn && yarn start",
     "graphql-dev": "graphql-faker --open ./src/graphql/schema.faker.graphql"
   },
   "browserslist": {
