@@ -1,10 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import ApolloClient from "apollo-boost";
-import { gql } from "apollo-boost";
 import { ApolloProvider } from "@apollo/react-hooks";
 
-import "./index.css";
+import "./styles/styles.scss";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 
