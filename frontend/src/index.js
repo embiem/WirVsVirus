@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { ApolloProvider } from '@apollo/react-hooks';
 import { navigate } from '@reach/router';
 
+import './index.tailwind.css';
 import { Auth0Provider } from './utils/react-auth0-spa';
 import apolloClient from './graphql/apolloClient';
 import config from './config/auth_config.json';
