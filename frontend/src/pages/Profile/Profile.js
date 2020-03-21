@@ -1,6 +1,6 @@
-import React, { Fragment } from "react";
-import { useAuth0 } from "../../utils/react-auth0-spa";
-import useLoginRedirect from "../../utils/useLoginRedirect";
+import React, { Fragment } from 'react';
+import { useAuth0 } from '../../utils/react-auth0-spa';
+import useLoginRedirect from '../../utils/useLoginRedirect';
 
 const Profile = () => {
   // Will redirect to login if not already authenticated

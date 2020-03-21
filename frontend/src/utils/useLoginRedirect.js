@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
-import { useAuth0 } from "./react-auth0-spa";
+import { useEffect } from 'react';
+import { useAuth0 } from './react-auth0-spa';
 
-export default function() {
+export default function () {
   const { loading, isAuthenticated, loginWithRedirect } = useAuth0();
 
   useEffect(() => {
@@ -10,7 +10,7 @@ export default function() {
     }
     const fn = async () => {
       await loginWithRedirect({
-        appState: { targetUrl: window.location.pathname }
+        appState: { targetUrl: window.location.pathname },
       });
     };
     fn();

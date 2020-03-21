@@ -1,23 +1,19 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import { ApolloProvider } from "@apollo/react-hooks";
-import { navigate } from "@reach/router";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { ApolloProvider } from '@apollo/react-hooks';
+import { navigate } from '@reach/router';
 
-import { Auth0Provider } from "./utils/react-auth0-spa";
-import apolloClient from "./graphql/apolloClient";
-import config from "./config/auth_config.json";
-import "./styles/styles.scss";
-import App from "./App";
-import * as serviceWorker from "./serviceWorker";
+import { Auth0Provider } from './utils/react-auth0-spa';
+import apolloClient from './graphql/apolloClient';
+import config from './config/auth_config.json';
+import './styles/styles.scss';
+import App from './App';
+import * as serviceWorker from './serviceWorker';
 
 // A function that routes the user to the right place
 // after login
-const onRedirectCallback = appState => {
-  navigate(
-    appState && appState.targetUrl
-      ? appState.targetUrl
-      : window.location.pathname
-  );
+const onRedirectCallback = (appState) => {
+  navigate(appState && appState.targetUrl ? appState.targetUrl : window.location.pathname);
 };
 
 ReactDOM.render(

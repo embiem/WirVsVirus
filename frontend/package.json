@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.1",
     "graphql-faker": "^2.0.0-rc.17",
     "node-sass": "^4.13.1"
   },
