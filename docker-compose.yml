@@ -17,6 +17,7 @@ services:
         extras: "[dev]"
     environment:
       WIRVSVIRUS_HOST: "0.0.0.0"
+      WIRVSVIRUS_DB_URL: "mongodb://root:pass@db:27017/default"
     command: "wirvsvirus api --reload"
     volumes:
       - './backend/wirvsvirus:/home/app/code/wirvsvirus'
