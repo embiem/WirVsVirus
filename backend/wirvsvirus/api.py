@@ -7,7 +7,9 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException
+import graphene
 from pydantic import BaseModel, EmailStr, HttpUrl
+from starlette.graphql import GraphQLApp
 
 app = FastAPI(
     title="WirVsVirus", description="WirVsVirus!"
@@ -61,6 +63,21 @@ class Hospital(BaseModel):
     phone_number: Optional[str]
 
 
+class HospitalG(graphene.ObjectType):
+    id = graphene.ID()
+    name = graphene.String()
+    address = graphene.String()
+    website = graphene.String()
+    phone_number = graphene.String()
+
+
+class Query(graphene.ObjectType):
+    hospital = graphene.Field(HospitalG, id=graphene.ID())
+
+    def resolve_hospital(self, info, id):
+        return dict(id=1, name='Maria Hospital', address='Straße')
+
+
 class HelperDemand(BaseModel):
     """Demand for help."""
     id: UUID
@@ -100,3 +117,6 @@ async def post_demand(demand: HelperDemand):
 async def post_helper(helper: Helper):
     """ Post helper."""
     pass
+
+
+app.add_route("/", GraphQLApp(schema=graphene.Schema(query=Query)))
