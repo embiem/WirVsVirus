@@ -31,7 +31,7 @@ export const Auth0Provider = ({
       const isCurrentlyAuthenticated = await auth0FromHook.isAuthenticated();
       setIsAuthenticated(isCurrentlyAuthenticated);
 
-      if (isAuthenticated) {
+      if (isCurrentlyAuthenticated) {
         const currentUser = await auth0FromHook.getUser();
         setUser(currentUser);
 
