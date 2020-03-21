@@ -1,21 +1,32 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import ApolloClient from 'apollo-boost';
 import { ApolloProvider } from '@apollo/react-hooks';
+import { navigate } from '@reach/router';
 
+import { Auth0Provider } from './utils/react-auth0-spa';
+import apolloClient from './graphql/apolloClient';
+import config from './config/auth_config.json';
 import './styles/styles.scss';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
-const GRAPHQL_URL = process.env.GRAPHQL_URL || 'http://localhost:9002/graphql';
-
-const client = new ApolloClient({
-  uri: GRAPHQL_URL,
-});
+// A function that routes the user to the right place
+// after login
+const onRedirectCallback = (appState) => {
+  navigate(appState && appState.targetUrl ? appState.targetUrl : window.location.pathname);
+};
 
 ReactDOM.render(
-  <ApolloProvider client={client}>
-    <App />
+  <ApolloProvider client={apolloClient}>
+    <Auth0Provider
+      domain={config.domain}
+      client_id={config.clientId}
+      audience={config.audience}
+      redirect_uri={window.location.origin}
+      onRedirectCallback={onRedirectCallback}
+    >
+      <App />
+    </Auth0Provider>
   </ApolloProvider>,
   document.getElementById('root'),
 );
