@@ -22,7 +22,7 @@ class User(BaseModel):
     email: Optional[str] = None
     full_name: Optional[str] = None
     user_type: str  # helper? or hospital?
-    capabilities: HelperCapabilityProfile  # help capabilities if this is a helper
+    capabilities: 'HelperCapabilityProfile'  # help capabilities if this is a helper
     hospital_id: Optional[UUID]  # hospital id if this is a hospital user
 
 
@@ -37,8 +37,8 @@ class Hospital(BaseModel):
 
 
 class HelperCapabilityProfile(BaseModel):
-    capabilities: List[Experience]
-    qualifications: List[Qualification]
+    capabilities: List['Experience']
+    qualifications: List['Qualification']
     address: dict
     radius: float  # km away from address this person could work?
     cohabitants: int  # number of cohabitants

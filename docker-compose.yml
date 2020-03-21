@@ -11,9 +11,15 @@ services:
     command: "yarn prod"
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        extras: "[dev]"
+    environment:
+      WIRVSVIRUS_HOST: "0.0.0.0"
+    command: "wirvsvirus api --reload"
     volumes:
-      - './backend/app:/home/app/code/app'
+      - './backend/wirvsvirus:/home/app/code/wirvsvirus'
     ports:
       - "8000:8000"
     # need this to enable attaching to container and interacting with debugger

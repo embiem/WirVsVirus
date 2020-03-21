@@ -1,4 +1,7 @@
 fastapi[all]
 click
 requests
-pymongo
+motor
+graphene
+
+pytest
