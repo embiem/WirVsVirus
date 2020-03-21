@@ -13,7 +13,9 @@ from pydantic import BaseModel, EmailStr, HttpUrl
 from starlette.graphql import GraphQLApp
 
 from wirvsvirus import db
+from wirvsvirus.auth import Auth
 
+auth = Auth()
 app = FastAPI(
     title="WirVsVirus", description="WirVsVirus!"
 )
@@ -119,7 +121,7 @@ async def get_matches():
 
 
 @app.post('/matches')
-async def post_match(match: MatchModel, db: db.AsyncIOMotorDatabase = Depends(db.get_database)):
+async def post_match(match: MatchModel, db: db.AsyncIOMotorDatabase = Depends(db.get_database), auth: dict = Depends(auth)):
     """Post match."""
     db.matches.insert_one(match)
 
