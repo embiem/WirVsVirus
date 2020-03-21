@@ -61,6 +61,13 @@ class Hospital(BaseModel):
     phone_number: Optional[str]
 
 
+class User(BaseModel):
+    """User model."""
+    id: UUID
+    email: EmailStr
+    hospital_id: UUID
+
+
 class HelperDemand(BaseModel):
     """Demand for help."""
     id: UUID
