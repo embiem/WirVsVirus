@@ -28,7 +28,9 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import deLocale from 'date-fns/locale/de';
 
 import { Typography } from '@material-ui/core';
+
 import SearchEntry from './Entry';
+import areasOfWork from '../../config/areas_of_work.json';
 
 const SEARCH_QUERY = gql`
   query searchQuery($activities: [Activity]) {
@@ -144,120 +146,25 @@ export default function Search() {
                   format="d. MMM yyyy"
                 />
               </ListItem>
-              <Divider component="li" />
-              <li>
-                <Typography color="textSecondary" display="block" variant="caption">
-                  Administration
-                </Typography>
-              </li>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Personalabteilung"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Kommunikation"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="IT-Unterstützung"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Buchhaltung"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Rechtsabteilung"
-                />
-              </ListItem>
-              <Divider component="li" />
-              <li>
-                <Typography color="textSecondary" display="block" variant="caption">
-                  Logistik
-                </Typography>
-              </li>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Planung, Materialbeschaffung"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="logistische Hilfsarbeiten, wie Krankentransport, Bluttransport, RTW"
-                />
-              </ListItem>
-              <Divider component="li" />
-              <li>
-                <Typography color="textSecondary" display="block" variant="caption">
-                  Medizin
-                </Typography>
-              </li>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Beratung (Hotline/Mail)"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Aufnahmebereich PatientInnen"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Normalstation – Pflege"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Intensivstation – Pflege"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Intensivstation – med. Versorgung ohne Beatmung"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Intensivstation – med. Versorgung mit Beatmung"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Beatmung verändern (Assistenz- / Facharzt)"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Operativer Tätigkeitsbereich"
-                />
-              </ListItem>
-              <ListItem>
-                <FormControlLabel
-                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
-                  label="Weitere Tätigkeitsbereiche mit med. Vorausbildung"
-                />
-              </ListItem>
+
+              {areasOfWork.categories.map((category) => (
+                <React.Fragment key={category.id}>
+                  <Divider component="li" />
+                  <li>
+                    <Typography color="textSecondary" display="block" variant="caption">
+                      {category.name.de}
+                    </Typography>
+                  </li>
+                  {category.children.map((area) => (
+                    <ListItem key={area.id}>
+                      <FormControlLabel
+                        control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                        label={area.name.de}
+                      />
+                    </ListItem>
+                  ))}
+                </React.Fragment>
+              ))}
             </List>
           </Grid>
         </Grid>
