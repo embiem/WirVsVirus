@@ -2,70 +2,101 @@
 
 from typing import List, Any
 from datetime import datetime, timedelta
+from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-import requests
 from fastapi import Depends, FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, HttpUrl
 
 app = FastAPI(
     title="WirVsVirus", description="WirVsVirus!"
 )
 
 
-class User(BaseModel):
-    """Define user model."""
+class RoleEnum(str, Enum):
+    """Capabailty a helper can have."""
+    admin = 'admin'
+    logistic = 'logistic'
+    medical = 'medical'
 
+
+class CapabilityEnum(str, Enum):
+    """Capabailty a helper can have."""
+    hotline = 'hotline'
+    testing = 'testing'
+    care_normal = 'care_normal'
+    care_intensive = 'care_intensive'
+    care_intensive_medical = 'care_intensive_medical'
+    care_intensive_medical_ventilation = 'care_intensive_medical_ventilation'
+    medical_specialist = 'medical_specialist'
+
+
+class Address(BaseModel):
+    """Adress schema."""
     id: UUID
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    user_type: str  # helper? or hospital?
-    capabilities: 'HelperCapabilityProfile'  # help capabilities if this is a helper
-    hospital_id: Optional[UUID]  # hospital id if this is a hospital user
+    zip_code: int
+    street: str
+    latitude: float
+    longitude: float
+
+
+class Helper(BaseModel):
+    """Define helper model."""
+    id: UUID
+    name: str
+    email: EmailStr
+    address: Address
+    phone_number: str
+    capability: CapabilityEnum
+    helping_category: RoleEnum
 
 
 class Hospital(BaseModel):
-    """Hospital model?"""
-
+    """Hospital model."""
     id: UUID
     name: str
     address: dict
-    location: dict
-    needs: dict  # what does this hospital need... TODO: the name "needs" is bad, we need something better.
+    website: Optional[HttpUrl]
+    phone_number: Optional[str]
 
 
-class HelperCapabilityProfile(BaseModel):
-    capabilities: List['Experience']
-    qualifications: List['Qualification']
-    address: dict
-    radius: float  # km away from address this person could work?
-    cohabitants: int  # number of cohabitants
-    child_cohabitants: bool  # do children live with this helper
-    # TODO: try and figure out how to model availability and when the helper is blocked by a hospital.
-    availability: dict  # calendar data / or some sort of ranges / number of hours ?
-
-class Experience(BaseModel):
-    """Experience level for a specific capability."""
-    capability_id: UUID
-    level: int
-
-
-class Qualification(BaseModel):
-    """Document showing some sort of qualification (university degree or something)."""
-    document: str
-
-
-class Capability(BaseModel):
-    """Capabailty a helper can have."""
+class HelperDemand(BaseModel):
+    """Demand for help."""
     id: UUID
-    name: str
-    category: str  # medical, administrative, logistical?
-    tags: List[str]  # random other search tearms or categories?
+    hospital_id: UUID
+    capability: CapabilityEnum
+    value: int = 1
 
 
-@app.get("/users")
-async def read_users_me() -> List[User]:
-    """Return the current user information."""
-    return []
+class Match(BaseModel):
+    """Match model."""
+    id: UUID
+    helper_id: UUID
+    demand_id: UUID
+    helper_confirmed: bool = False
+    hospital_confirmed: bool = False
+
+
+@app.get('/matches', response_model=Match)
+async def get_matches():
+    """Retrieve matches."""
+    pass
+
+
+@app.post('/matches')
+async def post_match(match: Match):
+    """Post match."""
+    pass
+
+
+@app.post('/demand')
+async def post_demand(demand: HelperDemand):
+    """Post new demand."""
+    pass
+
+
+@app.post('/helpers')
+async def post_helper(helper: Helper):
+    """ Post helper."""
+    pass
