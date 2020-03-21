@@ -17,14 +17,15 @@
     "react-scripts": "3.4.0"
   },
   "devDependencies": {
-    "graphql-faker": "^2.0.0-rc.17"
+    "graphql-faker": "^2.0.0-rc.17",
+    "node-sass": "^4.13.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "graphql-dev": "graphql-faker"
+    "graphql-dev": "graphql-faker --open ./src/graphql/schema.faker.graphql"
   },
   "browserslist": {
     "production": [
@@ -37,8 +38,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "node-sass": "^4.13.1"
   }
 }
