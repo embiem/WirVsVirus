@@ -16,9 +16,9 @@ WORKDIR /home/${username}/code
 
 WORKDIR /app/
 
-COPY  --chown=${username}:${username} requirements.txt .
+COPY  --chown=app:app requirements.txt .
 RUN pip install --user -r requirements.txt
 
-COPY --chown=${username}:${username} . .
+COPY --chown=app:app . .
 
 CMD ["python"]
