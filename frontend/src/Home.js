@@ -35,7 +35,7 @@ export default function Home() {
       <pre>{JSON.stringify(data, null, 2)}</pre>
       <div>
         {!isAuthenticated && (
-          <button onClick={() => loginWithRedirect({})}>Log in</button>
+          <button onClick={() => loginWithRedirect({})}>Anmelden</button>
         )}
 
         {isAuthenticated && <button onClick={() => logout()}>Abmelden</button>}
