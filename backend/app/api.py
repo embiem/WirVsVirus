@@ -6,7 +6,6 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-import requests
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, EmailStr, HttpUrl
 
@@ -39,7 +38,7 @@ class Address(BaseModel):
     zip_code: int
     street: str
     latitude: float
-    longiture: float
+    longitude: float
 
 
 class Helper(BaseModel):
@@ -77,3 +76,27 @@ class Match(BaseModel):
     demand_id: UUID
     helper_confirmed: bool = False
     hospital_confirmed: bool = False
+
+
+@app.get('/matches', response_model=Match)
+async def get_matches():
+    """Retrieve matches."""
+    pass
+
+
+@app.post('/matches')
+async def post_match(match: Match):
+    """Post match."""
+    pass
+
+
+@app.post('/demand')
+async def post_demand(demand: HelperDemand):
+    """Post new demand."""
+    pass
+
+
+@app.post('/helpers')
+async def post_helper(helper: Helper):
+    """ Post helper."""
+    pass
