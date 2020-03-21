@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@apollo/react-hooks';
 import { gql } from 'apollo-boost';
 
@@ -13,6 +13,21 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 
+import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
+import DateFnsUtils from '@date-io/date-fns';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import ListItemText from '@material-ui/core/ListItemText';
+import Divider from '@material-ui/core/Divider';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import deLocale from 'date-fns/locale/de';
+
+import { Typography } from '@material-ui/core';
 import SearchEntry from './Entry';
 
 const SEARCH_QUERY = gql`
@@ -32,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
     minWidth: 120,
   },
-  priorityContainer: {
+  container: {
     margin: '12px 0',
   },
 }));
@@ -44,7 +59,11 @@ export default function Search() {
     },
   });
 
-  const [tabValue, setValue] = React.useState(0);
+  // TODO use navigation instead of tabs,
+  // TODO as we want to navigate between pages for search/requests/my helpers
+  const [tabValue, setValue] = useState(0);
+
+  const [selectedDate, handleDateChange] = useState(new Date());
 
   const classes = useStyles();
 
@@ -53,60 +72,196 @@ export default function Search() {
   };
 
   return (
-    <div>
-      <Paper square>
-        <Tabs
-          value={tabValue}
-          onChange={handleChange}
-          variant="fullWidth"
-          indicatorColor="primary"
-          textColor="primary"
-          aria-label="icon tabs example"
-        >
-          <Tab label="Suche" />
-          <Tab label="Anfragen" />
-          <Tab label="Meine Helfer" />
-        </Tabs>
-      </Paper>
+    <MuiPickersUtilsProvider utils={DateFnsUtils} locale={deLocale}>
+      <Container>
+        <Paper square>
+          <Tabs
+            value={tabValue}
+            onChange={handleChange}
+            variant="fullWidth"
+            indicatorColor="primary"
+            textColor="primary"
+            aria-label="icon tabs example"
+          >
+            <Tab label="Suche" />
+            <Tab label="Anfragen" />
+            <Tab label="Meine Helfer" />
+          </Tabs>
+        </Paper>
 
-      <Grid container>
-        <Grid item>
-          <Container maxWidth="sm">
-            <Grid container className={classes.priorityContainer} justify="flex-end">
-              <FormControl className={classes.formControl}>
-                <InputLabel id="demo-simple-select-label">Priorisierung</InputLabel>
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  value={'Zeitraum'}
-                >
-                  <MenuItem value={'Zeitraum'}>Zeitraum</MenuItem>
-                  <MenuItem value={'Skills'}>Skills</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid container spacing={2} direction="column">
-              {tabValue === 0
-                && data
-                && data.search.map((searchEntry) => (
-                  <Grid item key={searchEntry.id}>
-                    <SearchEntry
-                      searchEntry={searchEntry}
-                      onPrimaryButtonClick={() => {
-                        // TODO
-                        console.warn(`Not Yet Implemented: Helfer ${searchEntry.id} Anfragen`);
-                      }}
-                    />
-                  </Grid>
-                ))}
-              {tabValue === 0 && loading && <p>Loading ...</p>}
-            </Grid>
-          </Container>
+        <Grid container wrap="nowrap">
+          <Grid item>
+            <Container maxWidth="sm">
+              {/* <Grid container className={classes.container} justify="flex-end">
+                <FormControl className={classes.formControl}>
+                  <InputLabel id="demo-simple-select-label">Priorisierung</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={'Zeitraum'}
+                  >
+                    <MenuItem value={'Zeitraum'}>Zeitraum</MenuItem>
+                    <MenuItem value={'Skills'}>Skills</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid> */}
+              <Grid container className={classes.container} spacing={2} direction="column">
+                {tabValue === 0
+                  && data
+                  && data.search.map((searchEntry) => (
+                    <Grid item key={searchEntry.id}>
+                      <SearchEntry
+                        searchEntry={searchEntry}
+                        onPrimaryButtonClick={() => {
+                          // TODO
+                          console.warn(`Not Yet Implemented: Helfer ${searchEntry.id} Anfragen`);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                {tabValue === 0 && loading && <p>Loading ...</p>}
+              </Grid>
+            </Container>
+          </Grid>
+          <Grid item>
+            <List>
+              <ListItem className={classes.container}>
+                <KeyboardDatePicker
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  variant="inline"
+                  inputVariant="outlined"
+                  label="Von"
+                  format="d. MMM yyyy"
+                />
+                <div style={{ width: 8 }} />
+                <KeyboardDatePicker
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  variant="inline"
+                  inputVariant="outlined"
+                  label="Bis"
+                  format="d. MMM yyyy"
+                />
+              </ListItem>
+              <Divider component="li" />
+              <li>
+                <Typography color="textSecondary" display="block" variant="caption">
+                  Administration
+                </Typography>
+              </li>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Personalabteilung"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Kommunikation"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="IT-Unterstützung"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Buchhaltung"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Rechtsabteilung"
+                />
+              </ListItem>
+              <Divider component="li" />
+              <li>
+                <Typography color="textSecondary" display="block" variant="caption">
+                  Logistik
+                </Typography>
+              </li>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Planung, Materialbeschaffung"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="logistische Hilfsarbeiten, wie Krankentransport, Bluttransport, RTW"
+                />
+              </ListItem>
+              <Divider component="li" />
+              <li>
+                <Typography color="textSecondary" display="block" variant="caption">
+                  Medizin
+                </Typography>
+              </li>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Beratung (Hotline/Mail)"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Aufnahmebereich PatientInnen"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Normalstation – Pflege"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Intensivstation – Pflege"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Intensivstation – med. Versorgung ohne Beatmung"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Intensivstation – med. Versorgung mit Beatmung"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Beatmung verändern (Assistenz- / Facharzt)"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Operativer Tätigkeitsbereich"
+                />
+              </ListItem>
+              <ListItem>
+                <FormControlLabel
+                  control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                  label="Weitere Tätigkeitsbereiche mit med. Vorausbildung"
+                />
+              </ListItem>
+            </List>
+          </Grid>
         </Grid>
-        <Grid item>
-          <Container>Filter</Container>
-        </Grid>
-      </Grid>
-    </div>
+      </Container>
+    </MuiPickersUtilsProvider>
   );
 }

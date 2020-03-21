@@ -4,12 +4,12 @@ const theme = createMuiTheme({
   palette: {
     primary: {
       // light: will be calculated from palette.primary.main,
-      main: '#8FB6D9',
+      main: '#6D688C',
       // dark: will be calculated from palette.primary.main,
       // contrastText: will be calculated to contrast with palette.primary.main
     },
     secondary: {
-      main: '#F2C9D8',
+      main: '#8FB6D9',
     },
     // Used by `getContrastText()` to maximize the contrast between
     // the background and the text.

@@ -50,10 +50,10 @@ const Header = () => {
     >
       <List>
         {[
-          { url: '/', title: 'Login' },
+          { url: '/profile', title: 'Login' },
           { url: '/register', title: 'Registrieren' },
           { url: '/hospital/search', title: 'Kliniken-Dashboard' },
-          { url: '/', title: 'HelferInnen-Dashboard' },
+          { url: '/profile', title: 'Helfer:Innen-Dashboard' },
           { url: '/hospital/create-invitation', title: 'Ausschreibung erstellen' },
         ].map((item) => (
           <RouterLink to={item.url} key={item.title} className={styles.offcanvasLink}>
@@ -65,14 +65,14 @@ const Header = () => {
       </List>
       <Divider />
       {/* DUMMY STUFF */}
-      <List>
+      {/* <List>
         {['All mail', 'Trash', 'Spam'].map((text, index) => (
           <ListItem button key={text}>
             <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
             <ListItemText primary={text} />
           </ListItem>
         ))}
-      </List>
+      </List> */}
     </div>
   );
 
@@ -91,7 +91,7 @@ const Header = () => {
             <Menu />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            HealthKeeper
+            WE MATCH 4 health
           </Typography>
         </Toolbar>
       </AppBar>

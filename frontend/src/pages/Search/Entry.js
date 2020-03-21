@@ -64,7 +64,7 @@ export default function OutlinedCard(props) {
               <TableRow>
                 <TableCell className={classes.table}>Verfuegbarer Zeitraum:</TableCell>
                 <TableCell className={classes.table} align="right">
-                  1.1.1 bis 2.2.2.
+                  24.03. bis 25.04
                 </TableCell>
               </TableRow>
               <TableRow>
