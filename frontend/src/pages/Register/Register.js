@@ -1,5 +1,7 @@
-import { Container, Paper, TextField, Button, Grid, Box, FormControl, InputLabel, Select, MenuItem } from '@material-ui/core';
-import React, {useState} from 'react';
+import {
+  Container, Paper, TextField, Button, Grid, Box, FormControl, InputLabel, Select, MenuItem,
+} from '@material-ui/core';
+import React, { useState } from 'react';
 import styles from './Register.module.scss';
 
 const RegisterPage = () => {
@@ -15,16 +17,16 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className={styles.page}>
+    <div className="py center-vertical">
       <Container>
-        <Paper className={styles.wrapper}>
+        <Paper className="paper--content-wrapper">
           <form noValidate autoComplete="off" onSubmit={submitForm}>
             <h1>Registrierung</h1>
 
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 {/* Krankenhausname */}
-                <FormControl 
+                <FormControl
                   className={styles.formRow}
                   fullWidth
                 >
@@ -44,7 +46,7 @@ const RegisterPage = () => {
 
               <Grid item xs={12}>
                 {/* Krankenhausname */}
-                <FormControl 
+                <FormControl
                   className={styles.formRow}
                   fullWidth
                 >
@@ -60,7 +62,7 @@ const RegisterPage = () => {
 
               <Grid item xs={12} md={6}>
                 {/* E-Mail-Adresse */}
-                <FormControl 
+                <FormControl
                   className={styles.formRow}
                   fullWidth
                 >
@@ -77,7 +79,7 @@ const RegisterPage = () => {
 
               <Grid item xs={12} md={6}>
                 {/* E-Mail-Adresse bestätigen */}
-                <FormControl 
+                <FormControl
                   className={styles.formRow}
                   fullWidth
                 >
@@ -94,7 +96,7 @@ const RegisterPage = () => {
 
               <Grid item xs={12} md={6}>
                 {/* Passwor`t */}
-                <FormControl 
+                <FormControl
                   className={styles.formRow}
                   fullWidth
                 >
@@ -116,10 +118,10 @@ const RegisterPage = () => {
                   <Button variant="contained">Abbrechen</Button>
 
                   {/* Submit */}
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    className={styles.submitButton}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    className="float-right"
                     type="submit"
                   >
                     Registrieren
