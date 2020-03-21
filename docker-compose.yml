@@ -5,7 +5,7 @@ services:
     image: node:13
     working_dir: /app
     volumes:
-      - ${PWD}/frontend:/app
+      - ./frontend:/app
     ports:
       - "8100:3000"
     command: "yarn prod"

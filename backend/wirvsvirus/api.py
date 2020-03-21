@@ -21,6 +21,7 @@ app = FastAPI(
 app.add_event_handler("startup", db.connect)
 app.add_event_handler("shutdown", db.disconnect)
 
+
 class RoleEnum(str, Enum):
     """Capabailty a helper can have."""
     admin = 'admin'
@@ -50,10 +51,10 @@ class AddressModel(BaseModel):
 
 class HelperModel(BaseModel):
     """Define helper model."""
-    id: UUID
+    id: str
     name: str
     email: str
-    address: str  # AddressModel
+    address: AddressModel
     phone_number: str
     capability: CapabilityEnum
     helping_category: RoleEnum
@@ -63,7 +64,7 @@ class HospitalModel(BaseModel):
     """Hospital model."""
     id: str
     name: str
-    address: str
+    address: AddressModel
     website: Optional[str]
     phone_number: Optional[str]
 
@@ -83,6 +84,11 @@ class MatchModel(BaseModel):
     demand_id: str
     helper_confirmed: bool = False
     hospital_confirmed: bool = False
+
+
+class Address(PydanticObjectType):
+    class Meta:
+        model = AddressModel
 
 
 class Helper(PydanticObjectType):
@@ -109,7 +115,9 @@ class Query(graphene.ObjectType):
     hospital = graphene.Field(Hospital, id=graphene.ID())
 
     def resolve_hospital(self, info, id):
-        return HospitalModel(id=1, name='Maria Hospital', address='Straße')
+        return HospitalModel(id=1, name='Maria Hospital',
+                             address=AddressModel(id=2, zip_code=50937, street='Straße',
+                                                  latitude=50.47, longitude=8.08))
 
 
 @app.get('/matches', response_model=MatchModel)
