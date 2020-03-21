@@ -8,6 +8,7 @@ from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException
 import graphene
+from graphene_pydantic import PydanticObjectType
 from pydantic import BaseModel, EmailStr, HttpUrl
 from starlette.graphql import GraphQLApp
 
@@ -34,87 +35,99 @@ class CapabilityEnum(str, Enum):
     medical_specialist = 'medical_specialist'
 
 
-class Address(BaseModel):
+class AddressModel(BaseModel):
     """Adress schema."""
-    id: UUID
+    id: str
     zip_code: int
     street: str
     latitude: float
     longitude: float
 
 
-class Helper(BaseModel):
+class HelperModel(BaseModel):
     """Define helper model."""
     id: UUID
     name: str
-    email: EmailStr
-    address: Address
+    email: str
+    address: str  # AddressModel
     phone_number: str
     capability: CapabilityEnum
     helping_category: RoleEnum
 
 
-class Hospital(BaseModel):
+class HospitalModel(BaseModel):
     """Hospital model."""
-    id: UUID
+    id: str
     name: str
-    address: dict
-    website: Optional[HttpUrl]
+    address: str
+    website: Optional[str]
     phone_number: Optional[str]
 
 
-class HospitalG(graphene.ObjectType):
-    id = graphene.ID()
-    name = graphene.String()
-    address = graphene.String()
-    website = graphene.String()
-    phone_number = graphene.String()
-
-
-class Query(graphene.ObjectType):
-    hospital = graphene.Field(HospitalG, id=graphene.ID())
-
-    def resolve_hospital(self, info, id):
-        return dict(id=1, name='Maria Hospital', address='Straße')
-
-
-class HelperDemand(BaseModel):
+class HelperDemandModel(BaseModel):
     """Demand for help."""
-    id: UUID
-    hospital_id: UUID
+    id: str
+    hospital_id: str
     capability: CapabilityEnum
     value: int = 1
 
 
-class Match(BaseModel):
+class MatchModel(BaseModel):
     """Match model."""
-    id: UUID
-    helper_id: UUID
-    demand_id: UUID
+    id: str
+    helper_id: str
+    demand_id: str
     helper_confirmed: bool = False
     hospital_confirmed: bool = False
 
 
-@app.get('/matches', response_model=Match)
+class Helper(PydanticObjectType):
+    class Meta:
+        model = HelperModel
+
+
+class HelperDemand(PydanticObjectType):
+    class Meta:
+        model = HelperDemandModel
+
+
+class Hospital(PydanticObjectType):
+    class Meta:
+        model = HospitalModel
+
+
+class Match(PydanticObjectType):
+    class Meta:
+        model = MatchModel
+
+
+class Query(graphene.ObjectType):
+    hospital = graphene.Field(Hospital, id=graphene.ID())
+
+    def resolve_hospital(self, info, id):
+        return HospitalModel(id=1, name='Maria Hospital', address='Straße')
+
+
+@app.get('/matches', response_model=MatchModel)
 async def get_matches():
     """Retrieve matches."""
     pass
 
 
 @app.post('/matches')
-async def post_match(match: Match):
+async def post_match(match: MatchModel):
     """Post match."""
     pass
 
 
 @app.post('/demand')
-async def post_demand(demand: HelperDemand):
+async def post_demand(demand: HelperDemandModel):
     """Post new demand."""
     pass
 
 
 @app.post('/helpers')
-async def post_helper(helper: Helper):
+async def post_helper(helper: HelperModel):
     """ Post helper."""
     pass
 
