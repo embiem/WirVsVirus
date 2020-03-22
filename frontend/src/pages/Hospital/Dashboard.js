@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/react-hooks';
 import { gql } from 'apollo-boost';
+import { Link } from '@reach/router';
 
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
@@ -57,6 +58,15 @@ const MATCHES_QUERY = gql`
       endDate
       status
       infoText
+    }
+  }
+`;
+
+const PERSONNEL_REQUIREMENTS_QUERY = gql`
+  query {
+    personnelRequirements {
+      activityId
+      countRequired
     }
   }
 `;
@@ -132,6 +142,8 @@ export default function Dashboard() {
     MATCHES_QUERY,
   );
 
+  const { data: preqsData } = useQuery(PERSONNEL_REQUIREMENTS_QUERY);
+
   // Mutation
   const [requestHelper] = useMutation(REQUEST_HELPER);
 
@@ -169,6 +181,18 @@ export default function Dashboard() {
     setActiveRequests(active);
     setExpiredRequests(expired);
   }, [matchesData]);
+
+  // Put PersonnelRequirements in easy to use data structure
+  const [requiredActivities, setRequiredActivities] = useState([]);
+  useEffect(() => {
+    const currentlyRequiredActivities = [];
+    if (preqsData && preqsData.personnelRequirements) {
+      preqsData.personnelRequirements.forEach((preq) => {
+        if (preq.countRequired > 0) currentlyRequiredActivities.push(preq.activityId);
+      });
+    }
+    setRequiredActivities(currentlyRequiredActivities);
+  }, [preqsData]);
 
   // Re-fetch on filter change
   useEffect(() => {
@@ -346,29 +370,33 @@ export default function Dashboard() {
                         {category.name.de}
                       </Typography>
                     </li>
-                    {category.children.map((activityId) => (
-                      <ListItem key={activityId}>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={!!filterValues[activityId]}
-                              name={activityId}
-                              onChange={(e) => {
-                                const targetName = e.target.name;
-                                const targetChecked = e.target.checked;
 
-                                setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
-                              }}
-                            />
-                          }
-                          label={pocData.activities[activityId].name.de}
-                        />
-                      </ListItem>
-                    ))}
+                    {category.children
+                      .filter((activityId) => requiredActivities.indexOf(activityId) !== -1)
+                      .map((activityId) => (
+                        <ListItem key={activityId}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={!!filterValues[activityId]}
+                                name={activityId}
+                                onChange={(e) => {
+                                  const targetName = e.target.name;
+                                  const targetChecked = e.target.checked;
+
+                                  setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
+                                }}
+                              />
+                            }
+                            label={pocData.activities[activityId].name.de}
+                          />
+                        </ListItem>
+                      ))}
                   </React.Fragment>
                 );
               })}
             </List>
+            <Link to="/hospital/requirements">Bedarf anpassen?</Link>
           </Grid>
         </Grid>
       </Container>
@@ -381,6 +409,7 @@ export default function Dashboard() {
             await requestHelper({
               variables: {
                 helperId: modalData.helperId,
+                // TODO use correct personnelREquirement
                 personnelRequirementId: 'SomeID',
                 infoText: data.infoText,
               },

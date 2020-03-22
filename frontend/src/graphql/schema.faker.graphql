@@ -58,8 +58,8 @@ type Helper {
 # PersonnelRequirements should be uniquely identifiable via hospitalId & activityId
 type PersonnelRequirement {
   hospital: Hospital!
-  activityId: String! @examples(values: ["ad-a", "ad-b", "ad-c"])
-  countRequired: Int!
+  activityId: String! @examples(values: ["ad-a", "ad-b", "ad-c", "lo-a", "lo-b", "me-a-1", "me-a-2", "me-a-3", "me-a-4", "me-a-5", "me-a-6", "me-a-7", "me-b", "me-c"])
+  countRequired: Int! @examples(values: [0, 2, 5, 10])
 }
 
 type Match {
@@ -88,8 +88,8 @@ type Query {
   # Get all matches of the logged-in user (either all matches of a hospital or helper)
   matches: [Match] @listLength(min: 5, max: 20)
   
-  # Get all personnel requirements for that hospital
-  personnelRequirements(hospitalId: ID): [PersonnelRequirement] @listLength(min: 5, max: 20)
+  # Get all personnel requirements for the hospital of the logged-in user
+  personnelRequirements: [PersonnelRequirement] @listLength(min: 3, max: 15)
 }
 
 type Mutation {
