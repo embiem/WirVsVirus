@@ -8,11 +8,10 @@ export default function () {
     if (loading || isAuthenticated) {
       return;
     }
-    const fn = async () => {
+    (async () => {
       await loginWithRedirect({
         appState: { targetUrl: window.location.pathname },
       });
-    };
-    fn();
+    })();
   }, [loading, isAuthenticated, loginWithRedirect]);
 }

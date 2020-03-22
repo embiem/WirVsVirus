@@ -1,43 +1,26 @@
 import React from 'react';
-import { Link } from '@reach/router';
-import { useQuery } from '@apollo/react-hooks';
-import { gql } from 'apollo-boost';
+import { Link, Redirect } from '@reach/router';
 
+import {
+  Container, Paper, Button, Box,
+} from '@material-ui/core';
 import { useAuth0 } from './utils/react-auth0-spa';
 
-const TEST_QUERY = gql`
-  {
-    hospital(id: "test") {
-      id
-      name
-      address {
-        zipCode
-        street
-        latitude
-        longitude
-      }
-      email
-      website
-      phone
-    }
-  }
-`;
-
 export default function Home() {
-  const { data } = useQuery(TEST_QUERY);
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
 
-  const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
+  // {isAuthenticated ? <Redirect to="/profile" /> :
+  if (isAuthenticated) return <Redirect to="/profile" />;
 
-  return (
-    <div>
-      <h1>Home</h1>
-      <Link to="/profile">Profile</Link>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-      <div>
-        {!isAuthenticated && <button onClick={() => loginWithRedirect({})}>Anmelden</button>}
-
-        {isAuthenticated && <button onClick={() => logout()}>Abmelden</button>}
-      </div>
-    </div>
-  );
+  return <div className="py center-vertical">
+    <Container >
+        <Paper className="paper--content-wrapper" >
+            <Box display="flex" justifyContent="center">
+              <Button variant="contained" size="large" color="primary" onClick={() => loginWithRedirect()}>
+              Anmelden
+              </Button>
+            </Box>
+        </Paper>
+     </Container>
+     </div>;
 }
