@@ -16,6 +16,11 @@ from wirvsvirus import auth
 logger = logging.getLogger(__name__)
 
 
+class Location(PydanticObjectType):
+    class Meta:
+        model = models.Location
+
+
 class Helper(PydanticObjectType):
     class Meta:
         model = models.Helper

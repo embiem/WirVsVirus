@@ -2,7 +2,7 @@
 from enum import Enum
 from typing import List, Optional, Union, Dict, Tuple
 
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import BaseModel
 
 from wirvsvirus import db
 
@@ -13,22 +13,18 @@ class ProfileTypeEnum(str, Enum):
     helper = 'helper'
 
 
+class MatchStatus(str, Enum):
+    """Match status."""
+    pending = 'Pending'
+    declined = 'Declined'
+    accepted = 'Accepted'
+
+
 class RoleEnum(str, Enum):
     """Capabailty a helper can have."""
     admin = 'admin'
     logistic = 'logistic'
     medical = 'medical'
-
-
-class CapabilityEnum(str, Enum):
-    """Capabailty a helper can have."""
-    hotline = 'hotline'
-    testing = 'testing'
-    care_normal = 'care_normal'
-    care_intensive = 'care_intensive'
-    care_intensive_medical = 'care_intensive_medical'
-    care_intensive_medical_ventilation = 'care_intensive_medical_ventilation'
-    medical_specialist = 'medical_specialist'
 
 
 class ProfileBase(db.MongoModel):
@@ -50,22 +46,59 @@ class Profile(ProfileIntermediate):
     id: str
 
 
+class PersonnelRequirementBase(db.MongoModel):
+    """Personnel requirement for help."""
+    hospital_id: str
+    activity_id: str
+    value: int = 1
 
-class AddressBase(BaseModel):
-    zip_code: str
-    street: str
-    latitude: float
-    longitude: float
+
+class PersonnelRequirement(PersonnelRequirementBase):
+    """Personnel requirement for help."""
+    id: str = None
+
+
+class MatchBase(db.MongoModel):
+    """Match model."""
+    helper_id: str
+    personnel_requirement_id: str
+    start_date: str
+    end_date: str
+    status: str
+    info_text: str
+
+
+class Match(MatchBase):
+    """Match model."""
+    id: str
+
+
+class Location(db.MongoModel):
+    type: str
+    coordinates: List[str]
 
 
 class HelperBase(db.MongoModel):
     """Define helper model."""
-    name: str
+    first_name: str
+    last_name: str
     email: str
-    address: str  # AddressModel
-    phone_number: str
-    capability: CapabilityEnum
-    helping_category: RoleEnum
+    phone: str
+    vaccination: Optional[str]
+    housing_situation: Optional[str]
+
+    zip_code: str
+    street: str
+    location: Optional[Location]
+
+    # Qualifications managed in frontend and stored in db as strings.
+    qualification_id: str
+    work_experience_in_years: int
+
+    # Activities managed in frontend. IDs stored as strings in DB
+    activity_ids: List[str]
+    match_ids: List[str]
+
     profile_id: Optional[str] = None
 
 
@@ -81,7 +114,6 @@ class MongoDbLocation(db.MongoModel):
 
 class HospitalBase(db.MongoModel):
     """Hospital model."""
-    _id: str
     name: str
     address: str
     website: Optional[str]
@@ -122,29 +154,4 @@ class HospitalBase(db.MongoModel):
 
 
 class Hospital(HospitalBase):
-    id: str
-
-
-class PersonnelRequirementBase(db.MongoModel):
-    """Demand for help."""
-    hospital_id: str
-    capability: CapabilityEnum
-    value: int = 1
-
-
-class PersonnelRequirement(PersonnelRequirementBase):
-    """Demand for help."""
-    id: str = None
-
-
-class MatchBase(db.MongoModel):
-    """Match model."""
-    helper_id: str
-    personnel_requirement_id: str
-    helper_confirmed: bool = False
-    hospital_confirmed: bool = False
-
-
-class Match(MatchBase):
-    """Match model."""
     id: str

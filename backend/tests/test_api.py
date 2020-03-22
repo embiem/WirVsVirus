@@ -1,4 +1,5 @@
 import uuid
+import datetime
 
 import pytest
 from wirvsvirus.api import app
@@ -7,6 +8,16 @@ from wirvsvirus.settings import settings
 
 import asyncio
 from bson import ObjectId
+
+
+dummy_match = models.MatchBase(
+        helper_id=str(ObjectId()),
+        personnel_requirement_id=str(ObjectId()),
+        start_date=datetime.datetime.utcnow().isoformat(),
+        end_date=datetime.datetime.utcnow().isoformat(),
+        status='test',
+        info_text='stuff'
+    )
 
 
 def test_profile_api(test_client, db_session, mock_auth):
@@ -26,8 +37,7 @@ def test_profile_api(test_client, db_session, mock_auth):
 
 
 def test_matches_api(test_client, db_session, mock_auth):
-    match = models.MatchBase(helper_id=str(ObjectId()), personnel_requirement_id=str(ObjectId()))
-    response = test_client.post('/matches', data=match.json())
+    response = test_client.post('/matches', data=dummy_match.json())
     assert response.status_code == 200
 
 
@@ -49,7 +59,7 @@ def test_auth(auth_token, test_client, db_session):
     Skipped if authentication token is missing.
     """
     match = models.MatchBase(helper_id=str(ObjectId()), personnel_requirement_id=str(ObjectId()))
-    m = test_client.post('/matches', data=match.json(), headers={'Authorization': f'Bearer {auth_token}'})
+    m = test_client.post('/matches', data=dummy_match.json(), headers={'Authorization': f'Bearer {auth_token}'})
     assert m.status_code == 200
 
 def test_hospitals_graphql(test_client, db_session, mock_auth):
@@ -72,7 +82,7 @@ def test_nested_crud_roundtrip(test_client, db_session, mock_auth):
     assert response.status_code == 200
     hospital = models.Hospital(**response.json())
 
-    item = models.PersonnelRequirementBase(hospital_id=hospital.id, capability='hotline')
+    item = models.PersonnelRequirementBase(hospital_id=hospital.id, activity_id='hotline')
     response = test_client.post('/personnel_requirements', data=item.json())
     assert response.status_code == 200
     personnel_requirement = models.PersonnelRequirement(**response.json())

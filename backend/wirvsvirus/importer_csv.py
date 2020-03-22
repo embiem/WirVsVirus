@@ -19,6 +19,10 @@ from wirvsvirus.models import HospitalBase
 from wirvsvirus.crud import create_item
 
 
+class IdempotentHospital(HospitalBase):
+    _id: str
+
+
 async def get_data_from_arcgis_file(file) -> list:
     """ Simulates an API call by reading the json from file, for testing and to
     prevent IP Blocks """
@@ -48,7 +52,7 @@ async def get_data_from_arcgis_file(file) -> list:
                 'coordinates': [row["X"], row["Y"]]
                 }
 
-            hb = HospitalBase(
+            hb = IdempotentHospital(
                 _id=mongo_id,
                 name=row["name"],
                 address=row["address_full"],
