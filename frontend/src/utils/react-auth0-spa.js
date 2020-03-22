@@ -38,7 +38,6 @@ export const Auth0Provider = ({
         // Get token and put in memory for API requests
         document.auth_token = await auth0FromHook.getTokenSilently();
       }
-
       setLoading(false);
     };
     initAuth0();

@@ -181,6 +181,7 @@ const RegisterPage = () => {
       submission.capability = elements.capability.value;
     }
 
+    // todo: this should be a custom hook.
     const Axios = axios.create({
       baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
       headers: {
