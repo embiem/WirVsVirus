@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery, useMutation } from '@apollo/react-hooks';
 import { gql } from 'apollo-boost';
 
 import Paper from '@material-ui/core/Paper';
@@ -17,20 +17,30 @@ import Divider from '@material-ui/core/Divider';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import deLocale from 'date-fns/locale/de';
+import Button from '@material-ui/core/Button';
 
 import { Typography } from '@material-ui/core';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 
-import SearchEntry from './Entry';
+import Entry from './Entry';
 import areasOfWork from '../../config/areas_of_work.json';
 
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 const SEARCH_QUERY = gql`
-  query searchQuery($activities: [Activity], $start: String!, $end: String!) {
+  query searchQuery($activities: [ID], $start: String!, $end: String!) {
     search(activities: $activities, start: $start, end: $end) {
       id
       qualification {
         name
       }
-      activities
+      activities {
+        id
+        name
+      }
     }
   }
 `;
@@ -43,12 +53,37 @@ const PERSONNEL_REQUESTS_QUERY = gql`
         qualification {
           name
         }
-        activities
+        activities {
+          id
+          name
+        }
       }
-      activity
+      activity {
+        id
+        name
+      }
       status
       startDate
       endDate
+    }
+  }
+`;
+
+const REQUEST_HELPER = gql`
+  mutation requestHelper($helperId: ID) {
+    requestHelper(helperId: $helperId) {
+      id
+      name
+      email
+      phone
+      qualification {
+        id
+        name
+      }
+      activities {
+        id
+        name
+      }
     }
   }
 `;
@@ -61,34 +96,62 @@ const useStyles = makeStyles((theme) => ({
   container: {
     margin: '12px 0',
   },
+  cardsContainer: {
+    width: 550,
+  },
 }));
 
 export default function Dashboard() {
+  const classes = useStyles();
+
+  // Snackbar
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('Erfolg!');
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setSnackbarOpen(false);
+  };
+
   const [tabValue, setValue] = useState(0);
+  const [filterValues, setFilterValues] = useState({});
 
   const [startDate, handleStartDateChange] = useState(new Date());
   const [endDate, handleEndDateChange] = useState(new Date());
 
-  const { loading: searchLoading, data: searchData } = useQuery(SEARCH_QUERY, {
-    variables: {
-      // TODO get from filters
-      activities: ['Hotline', 'Swap'],
-      start: startDate.getTime().toString(),
-      end: endDate.getTime().toString(),
+  // Queries
+  const { loading: searchLoading, data: searchData, refetch: searchRefetch } = useQuery(
+    SEARCH_QUERY,
+    {
+      variables: {
+        activities: Object.entries(filterValues)
+          .filter(([, isFilterActive]) => isFilterActive)
+          .map(([activityId]) => activityId),
+        start: startDate.getTime().toString(),
+        end: endDate.getTime().toString(),
+      },
     },
-  });
+  );
 
-  const { loading: requestsLoading, data: requestsData } = useQuery(PERSONNEL_REQUESTS_QUERY, {
-    variables: {
-      // TODO query hospital of logged-in user before
-      hospitalId: 'test',
-      start: startDate.getTime().toString(),
-      end: endDate.getTime().toString(),
+  const { loading: requestsLoading, data: requestsData, refetch: requestsRefetch } = useQuery(
+    PERSONNEL_REQUESTS_QUERY,
+    {
+      variables: {
+        // TODO query hospital of logged-in user before
+        hospitalId: 'test',
+        start: startDate.getTime().toString(),
+        end: endDate.getTime().toString(),
+      },
     },
-  });
+  );
 
-  const classes = useStyles();
+  // Mutation
+  const [requestHelper] = useMutation(REQUEST_HELPER);
 
+  // Sort requestsData into their categories
   const [pendingRequests, setPendingRequests] = useState([]);
   const [declinedRequests, setDeclinedRequests] = useState([]);
   const [activeRequests, setActiveRequests] = useState([]);
@@ -123,6 +186,17 @@ export default function Dashboard() {
     setExpiredRequests(expired);
   }, [requestsData]);
 
+  // Re-fetch on filter change
+  useEffect(() => {
+    searchRefetch({
+      activities: Object.entries(filterValues)
+        .filter(([, isFilterActive]) => isFilterActive)
+        .map(([activityId]) => activityId),
+      start: startDate.getTime().toString(),
+      end: endDate.getTime().toString(),
+    });
+  }, [filterValues, startDate, endDate, searchRefetch]);
+
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils} locale={deLocale}>
       <Container>
@@ -145,51 +219,118 @@ export default function Dashboard() {
 
         <Grid container wrap="nowrap">
           <Grid item>
-            <Container maxWidth="sm">
+            <Container className={classes.cardsContainer}>
               <Grid container className={classes.container} spacing={2} direction="column">
                 {tabValue === 0
                   && searchData
                   && searchData.search.map((searchEntry) => (
                     <Grid item key={searchEntry.id}>
-                      <SearchEntry
-                        searchEntry={searchEntry}
-                        onPrimaryButtonClick={() => {
-                          // TODO
-                          console.warn(`Not Yet Implemented: Helfer ${searchEntry.id} Anfragen`);
-                        }}
-                      />
+                      <Entry
+                        id={searchEntry.id}
+                        title={searchEntry.qualification.name}
+                        skills={searchEntry.activities}
+                      >
+                        <Button
+                          onClick={async () => {
+                            try {
+                              await requestHelper({
+                                variables: {
+                                  helperId: searchEntry.id,
+                                },
+                              });
+
+                              setSnackbarMessage('Helfer erfolgreich angefragt!');
+                              setSnackbarOpen(true);
+
+                              searchRefetch({
+                                activities: Object.entries(filterValues)
+                                  .filter(([, isFilterActive]) => isFilterActive)
+                                  .map(([activityId]) => activityId),
+                                start: startDate.getTime().toString(),
+                                end: endDate.getTime().toString(),
+                              });
+
+                              requestsRefetch({
+                                // TODO query hospital of logged-in user before
+                                hospitalId: 'test',
+                                start: startDate.getTime().toString(),
+                                end: endDate.getTime().toString(),
+                              });
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          }}
+                          className={classes.button}
+                          variant="contained"
+                          size="small"
+                        >
+                          Anfragen
+                        </Button>
+                      </Entry>
                     </Grid>
                   ))}
                 {tabValue === 1 && (
                   <>
-                    <p>ausstehend</p>
+                    <Typography color="secondary" gutterBottom>
+                      ausstehend
+                    </Typography>
                     {pendingRequests.map((pr) => (
                       <Grid item key={pr.id}>
-                        <pre>{JSON.stringify(pr, null, 2)}</pre>
+                        <Entry
+                          id={pr.id}
+                          title={pr.helper.qualification.name}
+                          skills={pr.helper.activities}
+                        ></Entry>
                       </Grid>
                     ))}
-                    <p>abgelehnt</p>
+                    {pendingRequests.length === 0 && <Paper>Keine ausstehenden Anfragen.</Paper>}
+
+                    <Divider variant="middle" />
+
+                    <Typography color="textSecondary" gutterBottom>
+                      abgelehnt
+                    </Typography>
                     {declinedRequests.map((pr) => (
                       <Grid item key={pr.id}>
-                        <pre>{JSON.stringify(pr, null, 2)}</pre>
+                        <Entry
+                          id={pr.id}
+                          title={pr.helper.qualification.name}
+                          skills={pr.helper.activities}
+                        ></Entry>
                       </Grid>
                     ))}
+                    {declinedRequests.length === 0 && <Paper>Keine abgelehnten Anfragen.</Paper>}
                   </>
                 )}
                 {tabValue === 2 && (
                   <>
-                    <p>aktiv</p>
+                    <Typography color="secondary" gutterBottom>
+                      aktiv
+                    </Typography>
                     {activeRequests.map((pr) => (
                       <Grid item key={pr.id}>
-                        <pre>{JSON.stringify(pr, null, 2)}</pre>
+                        <Entry
+                          id={pr.id}
+                          title={pr.helper.qualification.name}
+                          skills={pr.helper.activities}
+                        ></Entry>
                       </Grid>
                     ))}
-                    <p>abgelaufen</p>
+                    {activeRequests.length === 0 && <Paper>Keine aktiven Helfer.</Paper>}
+
+                    <Typography color="textSecondary" gutterBottom>
+                      abgelaufen
+                    </Typography>
                     {expiredRequests.map((pr) => (
                       <Grid item key={pr.id}>
-                        <pre>{JSON.stringify(pr, null, 2)}</pre>
+                        <Entry
+                          id={pr.id}
+                          title={pr.helper.qualification.name}
+                          skills={pr.helper.activities}
+                        ></Entry>
                       </Grid>
                     ))}
+                    {expiredRequests.length === 0 && <Paper>Keine abgelaufen Helfer.</Paper>}
                   </>
                 )}
                 {tabValue === 0 && searchLoading && <p>Lade Helfer ...</p>}
@@ -231,7 +372,18 @@ export default function Dashboard() {
                   {category.children.map((area) => (
                     <ListItem key={area.id}>
                       <FormControlLabel
-                        control={<Checkbox checked={true} onChange={() => {}} name="checkedA" />}
+                        control={
+                          <Checkbox
+                            checked={!!filterValues[area.id]}
+                            name={area.id}
+                            onChange={(e) => {
+                              const targetName = e.target.name;
+                              const targetChecked = e.target.checked;
+
+                              setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
+                            }}
+                          />
+                        }
                         label={area.name.de}
                       />
                     </ListItem>
@@ -242,6 +394,11 @@ export default function Dashboard() {
           </Grid>
         </Grid>
       </Container>
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="success">
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </MuiPickersUtilsProvider>
   );
 }

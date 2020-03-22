@@ -11,20 +11,15 @@
 #
 # Developed with ❤️ by APIs.guru | https://github.com/APIs-guru/graphql-faker
 
-enum Activity {
-  Hotline, 	# Beratung ueber Hotline
-  Swap,			# Aufnahmebereich/Beratung/Abstriche
-  CareNormal,	# Patienten auf Normalstation pflegen
-  CareIntensive, #Patienten auf der Intensivstation pflegen
-  CareIntensiveMedical, # Patienten auf der Intensivstation ohne Beatmung medizinisch betreuen (Medikamente/ Infusionen/ ...)
-  CareIntensiveMedicalVentilation, # Patienten auf der Intensivstation mit Beatmung medizinisch betreuen (zusätzlich steril absaugen/ Tubus umlagern/ Beatmungsgerät kennen und bei Alarmen reagieren/ ...)
-  MedicalSpecialist # Beatmung verändern = Assistent/Facharzt!
-}
-
 enum RequestStatus {
   Pending,
   Declined,
   Accepted
+}
+
+type Activity {
+  id: ID
+  name: String! @examples(values: ["Personalabteilung", "Kommunikation", "IT-Unterstützung", "Buchhaltung", "Planung, Materialbeschaffung", "logistische Hilfsarbeiten", "Beratung", "Aufnahmebereich", "Normalstation - Pflege", "Intensivstation – Pflege", "Intensivstation – med. Versorgung ohne Beatmung", "Intensivstation – med. Versorgung mit Beatmung", "Operativer Tätigkeitsbereich"])
 }
 
 type Hospital {
@@ -39,7 +34,7 @@ type Hospital {
 
 type Helper {
   id: ID
-  name: String! @fake(type:companyName, locale:de)
+  name: String! @fake(type:fullName, locale:de)
   address: Address!
   email: String! @fake(type:email, locale:de)
   phone: String! @fake(type:phoneNumber, locale:de)
@@ -59,7 +54,7 @@ type Address {
 
 type Qualification {
   id: ID
-  name: String! @fake(type:productName, locale:de)
+  name: String! @examples(values: ["Medizin Student", "Pfleger", "Facharzt"])
 }
 
 type PersonnelRequest {
@@ -81,6 +76,10 @@ type Match {
 type Query {
   hospital(id: ID): Hospital
   helper(id: ID): Helper
-  search(activities: [Activity], start: String!, end: String!): [Helper] @listLength(min: 2, max: 4)
-  personnelRequests(hospitalId: ID, start: String!, end: String!): [PersonnelRequest] @listLength(min: 0, max: 10)
+  search(activities: [ID], start: String!, end: String!): [Helper] @listLength(min: 2, max: 4)
+  personnelRequests(hospitalId: ID, start: String!, end: String!): [PersonnelRequest] @listLength(min: 5, max: 20)
+}
+
+type Mutation {
+  requestHelper(helperId: ID): Helper
 }
