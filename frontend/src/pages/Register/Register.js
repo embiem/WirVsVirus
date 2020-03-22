@@ -2,6 +2,7 @@
 import {
   Container, Paper, TextField, Button, Grid, Box, FormControl, InputLabel, Select, MenuItem,
 } from '@material-ui/core';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import React, { useState } from 'react';
 import { gql } from 'apollo-boost';
 import { useQuery } from '@apollo/react-hooks';
@@ -10,14 +11,57 @@ import styles from './Register.module.scss';
 import { useAuth0 } from '../../utils/react-auth0-spa';
 
 const HOSPITALS_QUERY = gql`
-  query hospitals {
-    hospitals {
-      _id
-      name
-    }
+  {
+  hospitals {
+    id
+    addressCity
+    origFid
+    globalid
+    name
   }
+}
 `;
 
+
+const ClinicForm = ({ hospitalChanged }) => {
+  const { data: hospitals } = useQuery(
+    HOSPITALS_QUERY,
+  );
+
+  return (
+        <FormControl
+          className={styles.formRow}
+          fullWidth
+        >
+<Autocomplete
+      id="hospital-name"
+      options={hospitals ? hospitals.hospitals : []}
+      autoHighlight
+      getOptionLabel={(option) => option.name}
+      renderOption={(option) => (
+        <React.Fragment>
+          {option.name} ({option.addressCity})
+        </React.Fragment>
+      )}
+      onChange={(event, newValue) => {
+        hospitalChanged(newValue);
+      }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Für welches Krankenhaus suchst Du Unterstützung?"
+          variant="outlined"
+          inputProps={{
+            ...params.inputProps,
+            autoComplete: 'new-password', // disable autocomplete and autofill
+          }}
+        />
+      )}
+    />
+
+
+      </FormControl>);
+};
 
 const HelperForm = ({
   helperType, helperTypeChanged, helperCapability, helperCapabilityChanged,
@@ -100,31 +144,11 @@ const HelperForm = ({
 
     </>;
 
-const ClinicForm = () => {
-  const { loading: searchLoading, data: hospitals } = useQuery(
-    HOSPITALS_QUERY,
-  );
-
-  return (
-        <FormControl
-          className={styles.formRow}
-          fullWidth
-        >
-          <TextField
-            id="hospital-name"
-            label="Name des Krankenhauses"
-            placeholder="Name des Krankenhauses"
-            fullWidth
-            name="hospitalName"
-            margin="normal"
-          />
-        </FormControl>);
-};
 const RegisterPage = () => {
   const [registerType, setRegisterType] = useState('');
   const [helperType, setHelperType] = useState('');
   const [helperCap, setHelperCap] = useState('');
-  const [hospital, setHospital] = useState('');
+  const [hospital, setHospital] = useState({});
 
   const { user } = useAuth0();
 
@@ -140,12 +164,9 @@ const RegisterPage = () => {
     setHelperCap(event.target.value);
   };
 
-  const hospitalChanged = (event) => {
-    setHospital(event.target.value);
-  };
-
   const submitForm = async (event) => {
     event.preventDefault();
+
 
     const { elements } = event.target;
     const submission = {
@@ -154,7 +175,7 @@ const RegisterPage = () => {
     };
 
     if (submission.profile_type === 'hospital') {
-      submission.hospital = elements.hospitalName.value;
+      submission.hospital = hospital;
     } else {
       submission.helperType = elements.helperType.value;
       submission.capability = elements.capability.value;
@@ -168,6 +189,7 @@ const RegisterPage = () => {
     });
 
     const res = await Axios.post('/profile', submission);
+    // if (res) redirect to dashboard
 
     console.log('submitted', res);
   };
@@ -209,7 +231,7 @@ const RegisterPage = () => {
                     helperTypeChanged={helperTypeChanged}
                     helperCapabilityChanged={helperCapabilityChanged}
                   /> : <ClinicForm
-                    hospitalChanged={hospitalChanged}
+                    hospitalChanged={setHospital}
                   />
                 ) : ''
               }

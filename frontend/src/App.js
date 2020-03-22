@@ -28,7 +28,7 @@ function App() {
         <RegisterPage path="/register" />
         <ProfilePage path="/profile" />
         <HospitalDashboardPage path="/hospital" />
-        <CreateInvitationPage path="/hospital/create-invitation" />
+        <CreateInvitationPage path="/hospital/requirements" />
       </Router>
     </>
   );

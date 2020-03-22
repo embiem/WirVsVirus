@@ -72,14 +72,14 @@ export default function SearchEntry({
             </ListItemAvatar>
             <ListItemText
               primary={skills
-                .reduce((skillsTxt, skill) => `${skillsTxt}, ${skill.name}`, '')
+                .reduce((skillsTxt, skill) => `${skillsTxt}, ${skill.name.de}`, '')
                 .substr(1)}
               secondary="Skills"
             />
           </ListItem>
         </List>
       </ExpansionPanelDetails>
-      <ExpansionPanelActions>{children}</ExpansionPanelActions>
+      {children && <ExpansionPanelActions>{children}</ExpansionPanelActions>}
     </ExpansionPanel>
   );
 }
