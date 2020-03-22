@@ -19,7 +19,7 @@ services:
     environment:
       WIRVSVIRUS_HOST: "0.0.0.0"
       WIRVSVIRUS_DB_URL: "mongodb://root:pass@db:27017/default?authSource=admin"
-      WIRVSVIRUS_AUTH_ENABLED: "false"
+      WIRVSVIRUS_AUTH_ENABLED: "true"
     command: "wirvsvirus api --reload"
     volumes:
       - './backend/wirvsvirus:/home/app/code/wirvsvirus'

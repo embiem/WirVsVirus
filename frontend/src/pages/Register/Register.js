@@ -5,6 +5,7 @@ import {
 import React, { useState } from 'react';
 import { gql } from 'apollo-boost';
 import { useQuery } from '@apollo/react-hooks';
+import axios from 'axios';
 import styles from './Register.module.scss';
 import { useAuth0 } from '../../utils/react-auth0-spa';
 
@@ -21,6 +22,30 @@ const HOSPITALS_QUERY = gql`
 const HelperForm = ({
   helperType, helperTypeChanged, helperCapability, helperCapabilityChanged,
 }) => <>
+
+    <FormControl
+      className={styles.formRow}
+      fullWidth
+    >
+
+
+      <FormControl
+        className={styles.formRow}
+        fullWidth
+      >
+        <TextField
+          id="region"
+          label="Meine Postleitzahl"
+          name="zipcode"
+          placeholder=""
+          fullWidth
+          margin="normal"
+          type="text"
+          defaultValue={''}
+        />
+      </FormControl>
+
+    </FormControl>
 
     <FormControl
       className={styles.formRow}
@@ -119,24 +144,32 @@ const RegisterPage = () => {
     setHospital(event.target.value);
   };
 
-  const submitForm = (event) => {
+  const submitForm = async (event) => {
     event.preventDefault();
 
     const { elements } = event.target;
     const submission = {
       email: elements.email.value,
-      type: elements.type.value,
+      profile_type: elements.type.value,
     };
 
-    if (submission.type === 'hospital') {
+    if (submission.profile_type === 'hospital') {
       submission.hospital = elements.hospitalName.value;
     } else {
       submission.helperType = elements.helperType.value;
       submission.capability = elements.capability.value;
     }
 
-    debugger;
-    console.log('submit Form', submission);
+    const Axios = axios.create({
+      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+      headers: {
+        Authorization: document.auth_token ? `Bearer ${document.auth_token}` : '',
+      },
+    });
+
+    const res = await Axios.post('/profile', submission);
+
+    console.log('submitted', res);
   };
 
   return (
