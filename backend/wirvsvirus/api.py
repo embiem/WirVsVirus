@@ -72,7 +72,7 @@ async def create_hospital(hospital: models.HospitalBase, db: db.AsyncIOMotorData
 
 # TODO: correct the response_model
 @app.post('/nearest_hospital')  # , response_model=models.Hospital)
-async def find_nearest_hospitals(long=None, lat=None):
+async def find_nearest_hospitals(lon=None, lat=None):
     """ Receives a position (long, lat) to find the nearest hospitals and
     returns the closest one """
     # MongoDB optimization to have a maximum limit on results
@@ -93,7 +93,7 @@ async def find_nearest_hospitals(long=None, lat=None):
     for h in hospitals:
         # Calc distance two the startpoint
         cur_d = calc_line_distance(
-            float(long), float(lat),
+            float(lon), float(lat),
             float(h['location']['coordinates'][0]),
             float(h['location']['coordinates'][1]))
         # Safe if its the current shortest distance
@@ -102,7 +102,7 @@ async def find_nearest_hospitals(long=None, lat=None):
             shorest_hospital = h
 
     logging.debug(
-            f'start_long: {long}, start_lat: {lat}, calc_line_distance: '
+            f'start_long: {lon}, start_lat: {lat}, calc_line_distance: '
             f'{shortest_distance}, hospital: {shorest_hospital}')
 
     return str(shorest_hospital)
