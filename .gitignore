@@ -44,3 +44,5 @@ report.xml
 .hypothesis/
 .pytest_cache
 data
+
+mongo

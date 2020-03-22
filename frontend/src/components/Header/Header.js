@@ -1,10 +1,17 @@
 import {
-  AppBar, Divider, Drawer, IconButton, List, ListItem, ListItemText, Toolbar, Typography, ListItemIcon,
+  AppBar,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Toolbar,
+  Typography,
+  ListItemIcon,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Inbox as InboxIcon, Mail as MailIcon, Menu,
-} from '@material-ui/icons';
+import { Inbox as InboxIcon, Mail as MailIcon, Menu } from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { useState } from 'react';
 import { Link as RouterLink } from '@reach/router';
@@ -43,29 +50,29 @@ const Header = () => {
     >
       <List>
         {[
-          { url: '/', title: 'Login' },
+          { url: '/profile', title: 'Login' },
           { url: '/register', title: 'Registrieren' },
-          { url: '/', title: 'Kliniken-Dashboard' },
-          { url: '/', title: 'HelferInnen-Dashboard' },
+          { url: '/hospital', title: 'Kliniken-Dashboard' },
+          { url: '/profile', title: 'Helfer:Innen-Dashboard' },
           { url: '/hospital/create-invitation', title: 'Ausschreibung erstellen' },
         ].map((item) => (
           <RouterLink to={item.url} key={item.title} className={styles.offcanvasLink}>
             <ListItem button>
-                <ListItemText primary={item.title} />
+              <ListItemText primary={item.title} />
             </ListItem>
           </RouterLink>
         ))}
       </List>
       <Divider />
       {/* DUMMY STUFF */}
-      <List>
+      {/* <List>
         {['All mail', 'Trash', 'Spam'].map((text, index) => (
           <ListItem button key={text}>
             <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
             <ListItemText primary={text} />
           </ListItem>
         ))}
-      </List>
+      </List> */}
     </div>
   );
 
@@ -84,7 +91,7 @@ const Header = () => {
             <Menu />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            HealthKeeper
+            WE MATCH 4 health
           </Typography>
         </Toolbar>
       </AppBar>
