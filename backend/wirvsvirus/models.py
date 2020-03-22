@@ -1,6 +1,6 @@
 
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Union, Dict
 
 from pydantic import BaseModel, EmailStr, HttpUrl
 
@@ -84,7 +84,7 @@ class HospitalBase(db.MongoModel):
     profile_id: Optional[str] = None
     helper_demand_ids: List[str] = []
 
-    # geometry: Dict[] = None
+    location: Dict[str, Union[str, List[str]]] = None
     healthcare_speciality: Optional[str]
 
     operator: Optional[str]
