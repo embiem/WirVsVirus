@@ -9,11 +9,10 @@ class MatchingModel:
     configuration: dict
     results: dict = {}
 
-    def __init__(self, configuration):
+    def __init__(self, hospitals, worker):
         """Initialize matching model."""
-        self.configuration = configuration
-        self.hospitals = configuration["hospitals"]
-        self.worker = configuration["worker"]
+        self.hospitals = hospitals
+        self.worker = worker
         self.distances = self.calculate_distances()
         self.model = cp_model.CpModel()
 
@@ -21,9 +20,11 @@ class MatchingModel:
         """Calculate distances betwenn worker and hospitals."""
         distances = {}
         for h in self.hospitals:
-            distances[h["name"]] = {}
+            distances[h["_id"]] = {}
+            coords_h = h["location"]["coordinates"]
             for w in self.worker:
-                distances[h["name"]][w["name"]] = int(10 * sqrt((h["latitude"] - w["latitude"])**2 + (h["longitude"] - w["longitude"])**2))
+                coords_w = w["location"]["coordinates"]
+                distances[h["_id"]][w["_id"]] = int(10 * sqrt((coords_h[0] - coords_w[0])**2 + (coords_h[1] - coords_w[1])**2))
         return distances
 
     def solve(self):
@@ -39,27 +40,27 @@ class MatchingModel:
         """Create allocation variables."""
         self.allocation = {}
         for h in self.hospitals:
-            self.allocation[h["name"]] = {}
+            self.allocation[h["_id"]] = {}
             for w in self.worker:
-                name = f'allocation_{h["name"]}_{w["name"]}'
-                self.allocation[h["name"]][w["name"]] = self.model.NewBoolVar(name)
+                name = f'allocation_{h["_id"]}_{w["_id"]}'
+                self.allocation[h["_id"]][w["_id"]] = self.model.NewBoolVar(name)
 
     def add_constraints(self):
         """Add constraints."""
         # ensure that a worker can only be allocated once to a hospital
         for w in self.worker:
-            self.model.Add(sum(self.allocation[h["name"]][w["name"]] for h in self.hospitals) <= 1)
+            self.model.Add(sum(self.allocation[h["_id"]][w["_id"]] for h in self.hospitals) <= 1)
         # match the hospital demands based on skills
         for h in self.hospitals:
             for skill, demand in h["demand"].items():
-                self.model.Add(sum(self.allocation[h["name"]][w["name"]] for w in self.worker if w["skill"] == skill) <= demand)
+                self.model.Add(sum(self.allocation[h["_id"]][w["_id"]] for w in self.worker if skill in w["activity_ids"]) <= demand)
 
     def add_objective(self):
         """Add an objective."""
         # reward each match with 100
-        reward = sum(100 * self.allocation[h["name"]][w["name"]] for h in self.hospitals for w in self.worker)
+        reward = sum(100 * self.allocation[h["_id"]][w["_id"]] for h in self.hospitals for w in self.worker)
         # penalize the sum of distances for allocated worker capacity
-        distance_penalty = sum(self.distances[h["name"]][w["name"]] * self.allocation[h["name"]][w["name"]] for h in self.hospitals for w in self.worker)
+        distance_penalty = sum(self.distances[h["_id"]][w["_id"]] * self.allocation[h["_id"]][w["_id"]] for h in self.hospitals for w in self.worker)
         self.model.Maximize(reward - distance_penalty)
 
     def get_results(self):
@@ -67,8 +68,8 @@ class MatchingModel:
         results = {"objective": self.solver.ObjectiveValue(),
                    "allocation": {}}
         for h in self.hospitals:
-            results["allocation"][h["name"]] = []
+            results["allocation"][str(h["_id"])] = []
             for w in self.worker:
-                if self.solver.Value(self.allocation[h["name"]][w["name"]]) == True:
-                    results["allocation"][h["name"]].append(w["name"])
+                if self.solver.Value(self.allocation[h["_id"]][w["_id"]]) == True:
+                    results["allocation"][str(h["_id"])].append(str(w["_id"]))
         return results

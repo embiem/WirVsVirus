@@ -15,9 +15,9 @@ async def get_item(collection: str, id: str) -> Optional[dict]:
     """Get single item by id."""
     return await db.get_database()[collection].find_one({'_id': id})
 
-async def find(collection: str, query: dict) -> List[dict]:
+async def find(collection: str, query: dict, projection: dict = None) -> List[dict]:
     """Find multiple."""
     documents = []
-    async for document in db.get_database()[collection].find(query):
+    async for document in db.get_database()[collection].find(query, projection):
         documents.append(document)
     return documents

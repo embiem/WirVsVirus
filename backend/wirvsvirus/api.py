@@ -9,6 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from wirvsvirus import db, models, auth, crud
 from wirvsvirus.graphql import graphql_app
+from wirvsvirus.matching import MatchingModel
 
 app = FastAPI(
     title="WirVsVirus", description="WirVsVirus!"
@@ -51,6 +52,23 @@ async def get_current_profile(db: db.AsyncIOMotorDatabase = Depends(db.get_datab
 async def create_match(match: models.MatchBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Create match."""
     return await crud.create_item('matches', match)
+
+
+@app.get('/matches/propositions')
+async def propose_matches(db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
+    """Propose matches."""
+    hospitals = await crud.find("hospitals", {}, {'name': 1, 'location': 1})
+    for hospital in hospitals:
+        requirements = await crud.find("personnel_requirements", {"hospital_id": str(hospital["_id"])})
+        demand = {r["activity_id"]: r["value"] for r in requirements}
+        hospital.update({'demand': demand})
+    helpers = await crud.find("helpers", {}, {'id': 1, 'location': 1, 'activity_ids': 1})
+    model = MatchingModel(
+        hospitals=hospitals, worker=helpers
+    )
+    model.solve()
+    return model.results["allocation"]
+
 
 @app.post('/personnel_requirements', response_model=models.PersonnelRequirement)
 async def create_personnel_requirements(personnel_requirement: models.PersonnelRequirementBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
