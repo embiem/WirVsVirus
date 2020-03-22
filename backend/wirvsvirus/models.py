@@ -75,7 +75,12 @@ class Match(MatchBase):
 
 class Location(db.MongoModel):
     type: str
-    coordinates: List[str]
+    coordinates: Tuple[int, int]
+
+
+# class MongoDbLocation(db.MongoModel):
+#     type: str
+#     coordinates: Tuple[int, int]
 
 
 class HelperBase(db.MongoModel):
@@ -87,8 +92,8 @@ class HelperBase(db.MongoModel):
     vaccination: Optional[str]
     housing_situation: Optional[str]
 
-    zip_code: str
-    street: str
+    zip_code: Optional[str]
+    street: Optional[str]
     location: Optional[Location]
 
     # Qualifications managed in frontend and stored in db as strings.
@@ -97,7 +102,6 @@ class HelperBase(db.MongoModel):
 
     # Activities managed in frontend. IDs stored as strings in DB
     activity_ids: List[str]
-    match_ids: List[str]
 
     profile_id: Optional[str] = None
 
@@ -105,11 +109,6 @@ class HelperBase(db.MongoModel):
 class Helper(HelperBase):
     """Define helper model."""
     id: str
-
-
-class MongoDbLocation(db.MongoModel):
-    type: str
-    coordinates: Tuple[int, int]
 
 
 class HospitalBase(db.MongoModel):
@@ -121,7 +120,7 @@ class HospitalBase(db.MongoModel):
     profile_id: Optional[str] = None
     personnel_requirement_ids: List[str] = []
 
-    location: Optional[MongoDbLocation] = None
+    location: Optional[Location] = None
     healthcare_speciality: Optional[str]
 
     operator: Optional[str]

@@ -34,11 +34,6 @@ class PersonnelRequirement(PydanticObjectType):
         model = models.PersonnelRequirement
 
 
-class MongoDbLocation(PydanticObjectType):
-    class Meta:
-        model = models.MongoDbLocation
-
-
 class Hospital(PydanticObjectType):
 
     personnel_requirements = graphene.List(PersonnelRequirement)
