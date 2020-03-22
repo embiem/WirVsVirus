@@ -7,7 +7,6 @@ import Home from './Home';
 import RegisterPage from './pages/Register/Register';
 import ProfilePage from './pages/Profile/Profile';
 import HospitalDashboardPage from './pages/Hospital/Dashboard';
-import HospitalRequirementsPage from './pages/Hospital/Requirements';
 import CreateInvitationPage from './pages/CreateInvitation/CreateInvitation';
 import Header from './components/Header/Header';
 import { useAuth0 } from './utils/react-auth0-spa';
@@ -29,8 +28,7 @@ function App() {
         <RegisterPage path="/register" />
         <ProfilePage path="/profile" />
         <HospitalDashboardPage path="/hospital" />
-        <HospitalRequirementsPage path="/hospital/requirements" />
-        <CreateInvitationPage path="/hospital/create-invitation" />
+        <CreateInvitationPage path="/hospital/requirements" />
       </Router>
     </>
   );

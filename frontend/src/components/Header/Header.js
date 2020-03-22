@@ -55,7 +55,7 @@ const Header = () => {
           { url: '/register', title: 'Registrieren' },
           { url: '/hospital', title: 'Kliniken-Dashboard' },
           { url: '/profile', title: 'Helfer:Innen-Dashboard' },
-          { url: '/hospital/create-invitation', title: 'Ausschreibung erstellen' },
+          { url: '/hospital/requirements', title: 'Bedarf eintragen' },
         ].map((item) => (
           <RouterLink to={item.url} key={item.title} className={styles.offcanvasLink}>
             <ListItem button>
