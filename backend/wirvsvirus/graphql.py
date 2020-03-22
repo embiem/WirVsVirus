@@ -75,7 +75,7 @@ class Query(graphene.ObjectType):
 
     async def resolve_hospitals(self, info):
         documents = await crud.find('hospitals', {})
-        return models.Hospital(**d for d in documents)
+        return [models.Hospital(**d) for d in documents]
 
     async def resolve_helper(self, info, id):
         document = await db.get_database().helpers.find_one({'_id': ObjectId(id)})
