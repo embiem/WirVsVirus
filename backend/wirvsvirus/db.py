@@ -20,7 +20,7 @@ db = DataBase()
 
 
 def get_database() -> AsyncIOMotorDatabase:
-    return db.client[settings.db_db]
+    return db.client.get_default_database()
 
 
 def connect():

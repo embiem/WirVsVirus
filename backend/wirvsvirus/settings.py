@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     port: int = environ.get("PORT", 8000)
 
     # database settings
-    db_db: str = "default"
     db_url: str = "mongodb://root:pass@127.0.0.1:27017/default"
 
     # authentication settings
