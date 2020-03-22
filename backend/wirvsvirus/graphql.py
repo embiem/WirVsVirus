@@ -34,6 +34,11 @@ class PersonnelRequirement(PydanticObjectType):
         model = models.PersonnelRequirement
 
 
+class MongoDbLocation(PydanticObjectType):
+    class Meta:
+        model = models.MongoDbLocation
+
+
 class Hospital(PydanticObjectType):
 
     personnel_requirements = graphene.List(PersonnelRequirement)
@@ -63,13 +68,19 @@ class Match(PydanticObjectType):
 
 class Query(graphene.ObjectType):
     hospital = graphene.Field(Hospital, id=graphene.ID())
+    hospitals = graphene.List(Hospital)
     helper = graphene.Field(Hospital, id=graphene.ID())
+
 
     async def resolve_hospital(self, info, id):
         document = await crud.get_item('hospitals', ObjectId(id))
         if not document:
             raise GraphQLError('No hospital available for this id.')
         return models.Hospital(**document)
+
+    async def resolve_hospitals(self, info):
+        documents = await crud.find('hospitals', {})
+        return [models.Hospital(**d) for d in documents]
 
     async def resolve_helper(self, info, id):
         document = await db.get_database().helpers.find_one({'_id': ObjectId(id)})
