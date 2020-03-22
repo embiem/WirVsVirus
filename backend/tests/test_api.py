@@ -52,6 +52,18 @@ def test_auth(auth_token, test_client, db_session):
     m = test_client.post('/matches', data=match.json(), headers={'Authorization': f'Bearer {auth_token}'})
     assert m.status_code == 200
 
+def test_hospitals_graphql(test_client, db_session, mock_auth):
+    """Test listing of hospitals."""
+    item = models.HospitalBase(name='test', address='test')
+    response = test_client.post('/hospitals', data=item.json())
+    assert response.status_code == 200
+    created_id = response.json()['id']
+    query_response = test_client.post('/graphql', json={
+        'query': 'query {hospitals {name id}}'.replace('HOSPITAL_ID', created_id)
+    })
+    assert query_response.json() == {'data': {'hospitals': [{'name': 'test', 'id': created_id}]}}
+
+
 
 def test_nested_crud_roundtrip(test_client, db_session, mock_auth):
     """Test that creating and querying hospitals works."""
