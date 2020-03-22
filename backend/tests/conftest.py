@@ -10,10 +10,12 @@ from wirvsvirus.settings import settings
 def test_client():
     from wirvsvirus.api import app
     from wirvsvirus import db
-    import asyncio
+    # for testing we always want this to be enabled.
+    # If we need to disable it, we will do so in fixtures
+    settings.auth_enabled = True
 
     client = TestClient(app)
-    asyncio.run(db.connect())
+    db.connect()
 
     return client
 
