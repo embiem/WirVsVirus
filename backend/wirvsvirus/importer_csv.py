@@ -67,7 +67,7 @@ async def get_data_from_arcgis_file(file) -> list:
                 #              #    x: row['X'],
                 #              #    y: row['Y']
                 #              # ]
-                )
+            )
             await create_item("hospitals", hb)
 
 
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     db.connect()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(
-        get_data_from_arcgis_file('data/hospital_openstreetmap_20200317.csv'))
+        get_data_from_arcgis_file('clinics.csv'))
     loop.close()
 
    # result = pool.apply_async(
