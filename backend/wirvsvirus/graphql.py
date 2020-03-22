@@ -10,7 +10,7 @@ from graphene_pydantic import PydanticObjectType
 from starlette.graphql import GraphQLApp
 from pydantic import ValidationError
 
-from wirvsvirus import models, db
+from wirvsvirus import models, db, crud
 from wirvsvirus import auth
 
 logger = logging.getLogger(__name__)
@@ -34,27 +34,36 @@ class Hospital(PydanticObjectType):
     personnel_requirements = graphene.List(PersonnelRequirement)
 
     async def resolve_personnel_requirements(self, info):
-        document = await db.get_database().personnel_requirements.find({'hospital_id': ObjectId(self.id)})
-        return models.Hospital(**document)
+        documents = await crud.find('personnel_requirements', {'hospital_id': str(self.id)})
+        return [models.PersonnelRequirement(**d) for d in documents]
 
     class Meta:
         model = models.Hospital
 
 
 class Match(PydanticObjectType):
+
+    helper = Helper
+    personnel_requirement = PersonnelRequirement
+
+    def resolve_helper(self, info):
+        document = crud.get_item('helpers', id=ObjectId(self.helper_id))
+        if not document:
+            raise GraphQLError('Helper does not exist.')
+        return models.Helper(**document)
+
     class Meta:
         model = models.Match
 
 
 class Query(graphene.ObjectType):
     hospital = graphene.Field(Hospital, id=graphene.ID())
-
     helper = graphene.Field(Hospital, id=graphene.ID())
 
     async def resolve_hospital(self, info, id):
-        document = await db.get_database().hospitals.find_one({'_id': ObjectId(id)})
+        document = await crud.get_item('hospitals', ObjectId(id))
         if not document:
-            raise GraphQLError()
+            raise GraphQLError('No hospital available for this id.')
         return models.Hospital(**document)
 
     async def resolve_helper(self, info, id):

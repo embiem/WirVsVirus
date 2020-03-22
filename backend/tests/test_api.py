@@ -31,7 +31,7 @@ def test_matches_api(test_client, db_session, mock_auth):
     assert response.status_code == 200
 
 
-def test_hospital_crud_roundtrip(test_client, db_session, mock_auth):
+def test_simple_hospital_crud_roundtrip(test_client, db_session, mock_auth):
     """Test that creating and querying hospitals works."""
     item = models.HospitalBase(name='test', address='test')
     response = test_client.post('/hospitals', data=item.json())
@@ -53,3 +53,29 @@ def test_auth(auth_token, test_client, db_session):
     assert m.status_code == 200
 
 
+def test_nested_crud_roundtrip(test_client, db_session, mock_auth):
+    """Test that creating and querying hospitals works."""
+    item = models.HospitalBase(name='test', address='test')
+    response = test_client.post('/hospitals', data=item.json())
+    assert response.status_code == 200
+    hospital = models.Hospital(**response.json())
+
+    item = models.PersonnelRequirementBase(hospital_id=hospital.id, capability='hotline')
+    response = test_client.post('/personnel_requirements', data=item.json())
+    assert response.status_code == 200
+    personnel_requirement = models.PersonnelRequirement(**response.json())
+
+    query_response = test_client.post('/graphql', json={
+        'query': 'query {hospital(id: "HOSPITAL_ID") {name id personnelRequirements {id}}}'.replace('HOSPITAL_ID', hospital.id)
+    })
+    assert query_response.json() == {
+        'data': {
+            'hospital': {
+                'name': 'test',
+                'id': hospital.id,
+                'personnelRequirements': [
+                    {'id': personnel_requirement.id}
+                ]
+            }
+        }
+    }
