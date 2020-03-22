@@ -1,4 +1,7 @@
 import React, { Fragment } from 'react';
+import {
+  Container, Paper, Box, Avatar,
+} from '@material-ui/core';
 import { useAuth0 } from '../../utils/react-auth0-spa';
 import useLoginRedirect from '../../utils/useLoginRedirect';
 
@@ -13,13 +16,19 @@ const Profile = () => {
   }
 
   return (
-    <Fragment>
-      <img src={user.picture} alt="Profile" />
+        <Container >
+        <Paper className="paper--content-wrapper" >
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Box>
+              <Avatar alt={user.name} src={user.picture} />
+            </Box>
+              <h2>{user.name}</h2>
+              <p>{user.email}</p>
 
-      <h2>{user.name}</h2>
-      <p>{user.email}</p>
-      <code>{JSON.stringify(user, null, 2)}</code>
-    </Fragment>
+          </Box>
+        </Paper>
+     </Container>
+
   );
 };
 

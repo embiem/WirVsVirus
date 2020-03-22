@@ -9,6 +9,7 @@ import {
   Toolbar,
   Typography,
   ListItemIcon,
+  Button,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { Inbox as InboxIcon, Mail as MailIcon, Menu } from '@material-ui/icons';
@@ -17,6 +18,7 @@ import React, { useState } from 'react';
 import { Link as RouterLink } from '@reach/router';
 import styles from './Header.module.scss';
 import LogoImage from './WMH_logo_white.png';
+import { useAuth0 } from '../../utils/react-auth0-spa';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -33,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
 const Header = () => {
   const classes = useStyles();
   const [offcanvasOpen, setOffcanvasOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth0();
 
   const toggleDrawer = (open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -65,15 +68,7 @@ const Header = () => {
         ))}
       </List>
       <Divider />
-      {/* DUMMY STUFF */}
-      {/* <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List> */}
+      {isAuthenticated && <Button color="primary" onClick={() => logout()}>Abmelden</Button>}
     </div>
   );
 
