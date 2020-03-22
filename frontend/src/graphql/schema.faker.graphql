@@ -11,75 +11,115 @@
 #
 # Developed with ❤️ by APIs.guru | https://github.com/APIs-guru/graphql-faker
 
-enum RequestStatus {
+enum MatchStatus {
   Pending,
   Declined,
   Accepted
 }
 
-type Activity {
-  id: ID
-  name: String! @examples(values: ["Personalabteilung", "Kommunikation", "IT-Unterstützung", "Buchhaltung", "Planung, Materialbeschaffung", "logistische Hilfsarbeiten", "Beratung", "Aufnahmebereich", "Normalstation - Pflege", "Intensivstation – Pflege", "Intensivstation – med. Versorgung ohne Beatmung", "Intensivstation – med. Versorgung mit Beatmung", "Operativer Tätigkeitsbereich"])
-}
-
 type Hospital {
   id: ID
   name: String! @fake(type:companyName, locale:de)
-  address: Address!
   email: String! @fake(type:email, locale:de)
   website: String @fake(type:url, locale:de)
   phone: String! @fake(type:phoneNumber, locale:de)
-  personnelRequests: [PersonnelRequest] @listLength(min: 0, max: 10)
-}
-
-type Helper {
-  id: ID
-  name: String! @fake(type:fullName, locale:de)
-  address: Address!
-  email: String! @fake(type:email, locale:de)
-  phone: String! @fake(type:phoneNumber, locale:de)
-	vaccination: String @fake(type:imageUrl)
-  qualification: Qualification
-  activities: [Activity] @listLength(min: 1, max: 3)
-  matches: [Match] @listLength(min: 0, max: 10)
-}
-
-type Address {
-  id: ID
+  
   zipCode: String @fake(type:zipCode, locale:de)
   street: String @fake(type:streetAddress, locale:de)
   latitude: String @fake(type:latitude, locale:de)
   longitude: String @fake(type:longitude, locale:de)
+  
+  personnelRequirements: [PersonnelRequirement] @listLength(min: 0, max: 10)
 }
 
-type Qualification {
+type Helper {
   id: ID
-  name: String! @examples(values: ["Medizin Student", "Pfleger", "Facharzt"])
+  firstName: String! @fake(type:firstName, locale:de)
+  lastName: String! @fake(type:lastName, locale:de)
+  email: String! @fake(type:email, locale:de)
+  phone: String! @fake(type:phoneNumber, locale:de)
+	vaccination: String @fake(type:productName)
+  housingSituation: String @fake(type:productName)
+  
+  zipCode: String @fake(type:zipCode, locale:de)
+  street: String @fake(type:streetAddress, locale:de)
+  latitude: String @fake(type:latitude, locale:de)
+  longitude: String @fake(type:longitude, locale:de)
+  
+  # Qualifications managed in frontend. IDs stored as strings in DB.
+  qualificationId: String @examples(values: ["bachelor", "master", "diplom", "1-exam", "2-exam", "aprobation"])
+  workExperienceInYears: Int @fake(type:number)
+  
+  # Activities managed in frontend. IDs stored as strings in DB
+  activityIds: [String] @listLength(min: 1, max: 3) @examples(values: ["ad-a", "ad-b", "ad-c", "lo-a", "lo-b", "me-a-1", "me-a-2", "me-a-3", "me-a-4", "me-a-5", "me-a-6", "me-a-7", "me-b", "me-c"])
+  matches: [Match] @listLength(min: 0, max: 10)
 }
 
-type PersonnelRequest {
+# PersonnelRequirements should be uniquely identifiable via hospitalId & activityId
+type PersonnelRequirement {
   id: ID
   hospital: Hospital!
-  helper: Helper!
-  activity: Activity!
-  startDate: String! @fake(type:pastDate)
-  endDate: String! @fake(type:futureDate)
-  status: RequestStatus!
+  activityId: String! @examples(values: ["ad-a", "ad-b", "ad-c", "lo-a", "lo-b", "me-a-1", "me-a-2", "me-a-3", "me-a-4", "me-a-5", "me-a-6", "me-a-7", "me-b", "me-c"])
+  countRequired: Int! @examples(values: [0, 2, 5, 10])
 }
 
 type Match {
   id: ID
   helper: Helper!
-  personnelRequest: PersonnelRequest!
+  personnelRequirement: PersonnelRequirement!
+  startDate: String!
+  endDate: String!
+  status: MatchStatus!
+  infoText: String
 }
 
 type Query {
-  hospital(id: ID): Hospital
-  helper(id: ID): Helper
-  search(activities: [ID], start: String!, end: String!): [Helper] @listLength(min: 2, max: 4)
-  personnelRequests(hospitalId: ID, start: String!, end: String!): [PersonnelRequest] @listLength(min: 5, max: 20)
+  # List of all available hospitals for selection
+  allHospitals: [Hospital]
+  
+  # Get Hospital object of the logged-in user
+  hospital: Hospital
+  
+  # Get Helper object of the logged-in user
+  helper: Helper
+  
+  # Get all Helpers based on the given filters
+  search(activities: [String], start: String, end: String): [Helper] @listLength(min: 2, max: 4)
+  
+  # Get all matches of the logged-in user (either all matches of a hospital or helper)
+  matches: [Match] @listLength(min: 5, max: 20)
+  
+  # Get all personnel requirements for the hospital of the logged-in user
+  personnelRequirements: [PersonnelRequirement] @listLength(min: 3, max: 15)
 }
 
 type Mutation {
-  requestHelper(helperId: ID): Helper
+  updateHospitalProfile(
+    name: String, 
+    email: String, 
+    website: String, 
+    phone: String
+  ): Hospital
+  
+  updateHelperProfile(
+    activityIds: [String], 
+    qualificationId: String, 
+    workExperienceInYears: Int, 
+    firstName: String, 
+    lastName: String, 
+    zipCode: String, 
+    street: String, 
+    phone: String, 
+    vaccination:String, 
+    housingSituation: String
+  ): Helper
+  
+  # This will be called once a hospital clicks the "request" button on a helper
+  requestHelper(helperId: ID, personnelRequirementId: ID, infoText: String): Match
+  
+  # Can be called by hospital or helper to accept/decline a request
+  updateRequest(matchId: ID, status: MatchStatus): Match
+  
+  # PersonnelRequirements should be uniquely identifiable via hospitalId & activityId
+  setPersonnelRequirement(hospitalId: ID, activityId: String, countRequired: Int): PersonnelRequirement
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/react-hooks';
 import { gql } from 'apollo-boost';
+import { Link } from '@reach/router';
 
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
@@ -15,8 +16,9 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
+import Radio from '@material-ui/core/Radio';
 import deLocale from 'date-fns/locale/de';
+import addDays from 'date-fns/addDays';
 import Button from '@material-ui/core/Button';
 
 import { Typography } from '@material-ui/core';
@@ -24,66 +26,60 @@ import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 
 import Entry from './Entry';
-import areasOfWork from '../../config/areas_of_work.json';
+import RequestModal from './RequestModal';
+import pocData from '../../config/poc_data.json';
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 const SEARCH_QUERY = gql`
-  query searchQuery($activities: [ID], $start: String!, $end: String!) {
+  query searchQuery($activities: [String], $start: String, $end: String) {
     search(activities: $activities, start: $start, end: $end) {
       id
-      qualification {
-        name
-      }
-      activities {
-        id
-        name
-      }
+      qualificationId
+      workExperienceInYears
+      activityIds
     }
   }
 `;
 
-const PERSONNEL_REQUESTS_QUERY = gql`
-  query personnelRequestsQuery($hospitalId: ID, $start: String!, $end: String!) {
-    personnelRequests(hospitalId: $hospitalId, start: $start, end: $end) {
+const MATCHES_QUERY = gql`
+  query {
+    matches {
       id
       helper {
-        qualification {
-          name
-        }
-        activities {
-          id
-          name
-        }
-      }
-      activity {
         id
-        name
+        qualificationId
+        workExperienceInYears
+        activityIds
       }
-      status
       startDate
       endDate
+      status
+      infoText
+    }
+  }
+`;
+
+const PERSONNEL_REQUIREMENTS_QUERY = gql`
+  query {
+    personnelRequirements {
+      id
+      activityId
+      countRequired
     }
   }
 `;
 
 const REQUEST_HELPER = gql`
-  mutation requestHelper($helperId: ID) {
-    requestHelper(helperId: $helperId) {
+  mutation requestHelper($helperId: ID, $personnelRequirementId: ID, $infoText: String) {
+    requestHelper(
+      helperId: $helperId
+      personnelRequirementId: $personnelRequirementId
+      infoText: $infoText
+    ) {
       id
-      name
-      email
-      phone
-      qualification {
-        id
-        name
-      }
-      activities {
-        id
-        name
-      }
     }
   }
 `;
@@ -111,6 +107,10 @@ export default function Dashboard() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('Erfolg!');
 
+  // Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({ helperId: null });
+
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -123,7 +123,7 @@ export default function Dashboard() {
   const [filterValues, setFilterValues] = useState({});
 
   const [startDate, handleStartDateChange] = useState(new Date());
-  const [endDate, handleEndDateChange] = useState(new Date());
+  const [endDate, handleEndDateChange] = useState(addDays(new Date(), 7));
 
   // Queries
   const { loading: searchLoading, data: searchData, refetch: searchRefetch } = useQuery(
@@ -139,17 +139,11 @@ export default function Dashboard() {
     },
   );
 
-  const { loading: requestsLoading, data: requestsData, refetch: requestsRefetch } = useQuery(
-    PERSONNEL_REQUESTS_QUERY,
-    {
-      variables: {
-        // TODO query hospital of logged-in user before
-        hospitalId: 'test',
-        start: startDate.getTime().toString(),
-        end: endDate.getTime().toString(),
-      },
-    },
+  const { loading: requestsLoading, data: matchesData, refetch: matchesRefetch } = useQuery(
+    MATCHES_QUERY,
   );
+
+  const { data: preqsData } = useQuery(PERSONNEL_REQUIREMENTS_QUERY);
 
   // Mutation
   const [requestHelper] = useMutation(REQUEST_HELPER);
@@ -166,19 +160,19 @@ export default function Dashboard() {
     const active = [];
     const expired = [];
 
-    if (requestsData && requestsData.personnelRequests) {
-      requestsData.personnelRequests.forEach((pr) => {
-        if (pr.status === 'Pending') {
-          pending.push(pr);
-        } else if (pr.status === 'Declined') {
-          declined.push(pr);
-        } else if (pr.status === 'Accepted') {
+    if (matchesData && matchesData.matches) {
+      matchesData.matches.forEach((match) => {
+        if (match.status === 'Pending') {
+          pending.push(match);
+        } else if (match.status === 'Declined') {
+          declined.push(match);
+        } else if (match.status === 'Accepted') {
           // TODO needs to correctly check days
           const curDate = new Date().getTime();
-          if (pr.startDate < curDate && pr.endDate > curDate) {
-            active.push(pr);
+          if (match.startDate < curDate && match.endDate > curDate) {
+            active.push(match);
           } else {
-            expired.push(pr);
+            expired.push(match);
           }
         }
       });
@@ -187,7 +181,19 @@ export default function Dashboard() {
     setDeclinedRequests(declined);
     setActiveRequests(active);
     setExpiredRequests(expired);
-  }, [requestsData]);
+  }, [matchesData]);
+
+  // Put PersonnelRequirements in easy to use data structure
+  const [requiredActivities, setRequiredActivities] = useState([]);
+  useEffect(() => {
+    const currentlyRequiredActivities = [];
+    if (preqsData && preqsData.personnelRequirements) {
+      preqsData.personnelRequirements.forEach((preq) => {
+        if (preq.countRequired > 0) currentlyRequiredActivities.push(preq.activityId);
+      });
+    }
+    setRequiredActivities(currentlyRequiredActivities);
+  }, [preqsData]);
 
   // Re-fetch on filter change
   useEffect(() => {
@@ -224,44 +230,29 @@ export default function Dashboard() {
           <Grid item>
             <Container className={classes.cardsContainer}>
               <Grid container className={classes.container} spacing={2} direction="column">
+                <Grid item>
+                  <Typography variant="h6" color="textSecondary">
+                    Helfer:
+                  </Typography>
+                </Grid>
                 {tabValue === 0
                   && searchData
                   && searchData.search.map((searchEntry) => (
                     <Grid item key={searchEntry.id}>
                       <Entry
                         id={searchEntry.id}
-                        title={searchEntry.qualification.name}
-                        skills={searchEntry.activities}
+                        title={pocData.qualifications[searchEntry.qualificationId].name.de}
+                        workExperienceInYears={searchEntry.workExperienceInYears}
+                        skills={searchEntry.activityIds.map(
+                          (activityId) => pocData.activities[activityId],
+                        )}
                       >
                         <Button
-                          onClick={async () => {
-                            try {
-                              await requestHelper({
-                                variables: {
-                                  helperId: searchEntry.id,
-                                },
-                              });
-
-                              setSnackbarMessage('Helfer erfolgreich angefragt!');
-                              setSnackbarOpen(true);
-
-                              searchRefetch({
-                                activities: Object.entries(filterValues)
-                                  .filter(([, isFilterActive]) => isFilterActive)
-                                  .map(([activityId]) => activityId),
-                                start: startDate.getTime().toString(),
-                                end: endDate.getTime().toString(),
-                              });
-
-                              requestsRefetch({
-                                // TODO query hospital of logged-in user before
-                                hospitalId: 'test',
-                                start: startDate.getTime().toString(),
-                                end: endDate.getTime().toString(),
-                              });
-                            } catch (err) {
-                              console.error(err);
-                            }
+                          onClick={() => {
+                            setModalData({
+                              helperId: searchEntry.id,
+                            });
+                            setModalOpen(true);
                           }}
                           className={classes.button}
                           variant="contained"
@@ -274,68 +265,84 @@ export default function Dashboard() {
                   ))}
                 {tabValue === 1 && (
                   <>
-                    <Typography color="secondary" gutterBottom>
-                      ausstehend
-                    </Typography>
+                    <Grid item>
+                      <Typography variant="subtitle1" color="secondary" gutterBottom>
+                        ausstehend
+                      </Typography>
+                    </Grid>
                     {pendingRequests.map((pr) => (
                       <Grid item key={pr.id}>
                         <Entry
                           id={pr.id}
-                          title={pr.helper.qualification.name}
-                          skills={pr.helper.activities}
+                          title={pocData.qualifications[pr.helper.qualificationId].name.de}
+                          skills={pr.helper.activityIds.map(
+                            (activityId) => pocData.activities[activityId],
+                          )}
                         ></Entry>
                       </Grid>
                     ))}
-                    {pendingRequests.length === 0 && <Paper>Keine ausstehenden Anfragen.</Paper>}
+                    {pendingRequests.length === 0 && <Grid item>Keine ausstehenden Anfragen.</Grid>}
 
                     <Divider className={classes.divider} variant="middle" />
 
-                    <Typography color="textSecondary" gutterBottom>
-                      abgelehnt
-                    </Typography>
+                    <Grid item>
+                      <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+                        abgelehnt
+                      </Typography>
+                    </Grid>
                     {declinedRequests.map((pr) => (
                       <Grid item key={pr.id}>
                         <Entry
                           id={pr.id}
-                          title={pr.helper.qualification.name}
-                          skills={pr.helper.activities}
+                          title={pocData.qualifications[pr.helper.qualificationId].name.de}
+                          skills={pr.helper.activityIds.map(
+                            (activityId) => pocData.activities[activityId],
+                          )}
                         ></Entry>
                       </Grid>
                     ))}
-                    {declinedRequests.length === 0 && <Paper>Keine abgelehnten Anfragen.</Paper>}
+                    {declinedRequests.length === 0 && <Grid item>Keine abgelehnten Anfragen.</Grid>}
                   </>
                 )}
                 {tabValue === 2 && (
                   <>
-                    <Typography color="secondary" gutterBottom>
-                      aktiv
-                    </Typography>
+                    <Grid item>
+                      <Typography variant="subtitle1" color="secondary" gutterBottom>
+                        aktiv
+                      </Typography>
+                    </Grid>
                     {activeRequests.map((pr) => (
                       <Grid item key={pr.id}>
                         <Entry
                           id={pr.id}
-                          title={pr.helper.qualification.name}
-                          skills={pr.helper.activities}
+                          title={pocData.qualifications[pr.helper.qualificationId].name.de}
+                          skills={pr.helper.activityIds.map(
+                            (activityId) => pocData.activities[activityId],
+                          )}
                         ></Entry>
                       </Grid>
                     ))}
-                    {activeRequests.length === 0 && <Paper>Keine aktiven Helfer.</Paper>}
+                    {activeRequests.length === 0 && <Grid item>Keine aktiven Helfer.</Grid>}
 
                     <Divider className={classes.divider} variant="middle" />
 
-                    <Typography color="textSecondary" gutterBottom>
-                      abgelaufen
-                    </Typography>
+                    <Grid item>
+                      <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+                        abgelaufen
+                      </Typography>
+                    </Grid>
                     {expiredRequests.map((pr) => (
                       <Grid item key={pr.id}>
                         <Entry
                           id={pr.id}
-                          title={pr.helper.qualification.name}
-                          skills={pr.helper.activities}
+                          title={pocData.qualifications[pr.helper.qualificationId].name.de}
+                          skills={pr.helper.activityIds.map(
+                            (activityId) => pocData.activities[activityId],
+                          )}
                         ></Entry>
                       </Grid>
                     ))}
-                    {expiredRequests.length === 0 && <Paper>Keine abgelaufen Helfer.</Paper>}
+                    {expiredRequests.length === 0 && <Grid item>Keine abgelaufen Helfer.</Grid>}
                   </>
                 )}
                 {tabValue === 0 && searchLoading && <p>Lade Helfer ...</p>}
@@ -366,39 +373,81 @@ export default function Dashboard() {
                 />
               </ListItem>
 
-              {areasOfWork.categories.map((category) => (
-                <React.Fragment key={category.id}>
-                  <Divider className={classes.divider} component="li" />
-                  <li>
-                    <Typography color="textSecondary" display="block" variant="caption">
-                      {category.name.de}
-                    </Typography>
-                  </li>
-                  {category.children.map((area) => (
-                    <ListItem key={area.id}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={!!filterValues[area.id]}
-                            name={area.id}
-                            onChange={(e) => {
-                              const targetName = e.target.name;
-                              const targetChecked = e.target.checked;
+              {Object.keys(pocData.activityCategories).map((categoryId) => {
+                const category = pocData.activityCategories[categoryId];
 
-                              setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
-                            }}
+                return (
+                  <React.Fragment key={categoryId}>
+                    <Divider className={classes.divider} component="li" />
+                    <li>
+                      <Typography color="textSecondary" display="block" variant="caption">
+                        {category.name.de}
+                      </Typography>
+                    </li>
+
+                    {category.children
+                      .filter((activityId) => requiredActivities.indexOf(activityId) !== -1)
+                      .map((activityId) => (
+                        <ListItem key={activityId}>
+                          <FormControlLabel
+                            control={
+                              <Radio
+                                checked={!!filterValues[activityId]}
+                                name={activityId}
+                                onChange={(e) => {
+                                  const targetName = e.target.name;
+                                  const targetChecked = e.target.checked;
+
+                                  setFilterValues(() => ({ [targetName]: targetChecked }));
+                                }}
+                              />
+                            }
+                            label={pocData.activities[activityId].name.de}
                           />
-                        }
-                        label={area.name.de}
-                      />
-                    </ListItem>
-                  ))}
-                </React.Fragment>
-              ))}
+                        </ListItem>
+                      ))}
+                  </React.Fragment>
+                );
+              })}
             </List>
+            <Link to="/hospital/requirements">Bedarf anpassen?</Link>
           </Grid>
         </Grid>
       </Container>
+      <RequestModal
+        open={modalOpen}
+        onSubmit={async (data) => {
+          setModalOpen(false);
+
+          try {
+            await requestHelper({
+              variables: {
+                helperId: modalData.helperId,
+                personnelRequirementId: preqsData.personnelRequirements.find(
+                  ({ activityId }) => !!filterValues[activityId],
+                ).id,
+                infoText: data.infoText,
+              },
+            });
+
+            setSnackbarMessage('Helfer erfolgreich angefragt!');
+            setSnackbarOpen(true);
+
+            searchRefetch({
+              activities: Object.entries(filterValues)
+                .filter(([, isFilterActive]) => isFilterActive)
+                .map(([activityId]) => activityId),
+              start: startDate.getTime().toString(),
+              end: endDate.getTime().toString(),
+            });
+
+            matchesRefetch();
+          } catch (err) {
+            console.error(err);
+          }
+        }}
+        onClose={() => setModalOpen(false)}
+      />
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity="success">
           {snackbarMessage}

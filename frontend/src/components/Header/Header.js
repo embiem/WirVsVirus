@@ -16,6 +16,7 @@ import clsx from 'clsx';
 import React, { useState } from 'react';
 import { Link as RouterLink } from '@reach/router';
 import styles from './Header.module.scss';
+import LogoImage from './WMH_logo_white.png';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -54,7 +55,7 @@ const Header = () => {
           { url: '/register', title: 'Registrieren' },
           { url: '/hospital', title: 'Kliniken-Dashboard' },
           { url: '/profile', title: 'Helfer:Innen-Dashboard' },
-          { url: '/hospital/create-invitation', title: 'Ausschreibung erstellen' },
+          { url: '/hospital/requirements', title: 'Bedarf eintragen' },
         ].map((item) => (
           <RouterLink to={item.url} key={item.title} className={styles.offcanvasLink}>
             <ListItem button>
@@ -90,9 +91,7 @@ const Header = () => {
           >
             <Menu />
           </IconButton>
-          <Typography variant="h6" className={classes.title}>
-            WE MATCH 4 health
-          </Typography>
+          <img src={LogoImage} alt="Logo" height={42} />
         </Toolbar>
       </AppBar>
 
