@@ -1,0 +1,124 @@
+{
+  "categories": [
+    {
+      "id": "ad",
+      "name": {
+        "de": "Administration"
+      },
+      "children": [
+        {
+          "id": "ad-a",
+          "name": {
+            "de": "Personalabteilung"
+          }
+        },
+        {
+          "id": "ad-b",
+          "name": {
+            "de": "Kommunikation"
+          }
+        },
+        {
+          "id": "ad-c",
+          "name": {
+            "de": "IT-Unterstützung"
+          }
+        },
+        {
+          "id": "ad-d",
+          "name": {
+            "de": "Buchhaltung"
+          }
+        },
+        {
+          "id": "ad-e",
+          "name": {
+            "de": "Rechtsabteilung"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lo",
+      "name": {
+        "de": "Logistik"
+      },
+      "children": [
+        {
+          "id": "lo-a",
+          "name": {
+            "de": "Planung, Materialbeschaffung"
+          }
+        },
+        {
+          "id": "lo-b",
+          "name": {
+            "de": "logistische Hilfsarbeiten, wie Krankentransport, Bluttransport, RTW"
+          }
+        }
+      ]
+    },
+    {
+      "id": "me",
+      "name": {
+        "de": "Medizin"
+      },
+      "children": [
+        {
+          "id": "me-a-1",
+          "name": {
+            "de": "Beratung (Hotline/Mail)"
+          }
+        },
+        {
+          "id": "me-a-2",
+          "name": {
+            "de": "Aufnahmebereich PatientInnen"
+          }
+        },
+        {
+          "id": "me-a-3",
+          "name": {
+            "de": "Normalstation - Pflege"
+          }
+        },
+        {
+          "id": "me-a-4",
+          "name": {
+            "de": "Intensivstation – Pflege"
+          }
+        },
+        {
+          "id": "me-a-5",
+          "name": {
+            "de": "Intensivstation – med. Versorgung ohne Beatmung"
+          }
+        },
+        {
+          "id": "me-a-6",
+          "name": {
+            "de": "Intensivstation – med. Versorgung mit Beatmung"
+          }
+        },
+        {
+          "id": "me-a-7",
+          "name": {
+            "de": "Beatmung verändern (Assistenz- / Facharzt)"
+          }
+        },
+        {
+          "id": "me-b",
+          "name": {
+            "de": "Operativer Tätigkeitsbereich"
+          }
+        },
+        {
+          "id": "me-c",
+          "name": {
+            "de": "Weitere Tätigkeitsbereiche mit med. Vorausbildung"
+          }
+        }
+      ]
+    }
+  ]
+}
