@@ -16,7 +16,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
+import Radio from '@material-ui/core/Radio';
 import deLocale from 'date-fns/locale/de';
 import addDays from 'date-fns/addDays';
 import Button from '@material-ui/core/Button';
@@ -65,6 +65,7 @@ const MATCHES_QUERY = gql`
 const PERSONNEL_REQUIREMENTS_QUERY = gql`
   query {
     personnelRequirements {
+      id
       activityId
       countRequired
     }
@@ -229,6 +230,11 @@ export default function Dashboard() {
           <Grid item>
             <Container className={classes.cardsContainer}>
               <Grid container className={classes.container} spacing={2} direction="column">
+                <Grid item>
+                  <Typography variant="h6" color="textSecondary">
+                    Helfer:
+                  </Typography>
+                </Grid>
                 {tabValue === 0
                   && searchData
                   && searchData.search.map((searchEntry) => (
@@ -259,9 +265,11 @@ export default function Dashboard() {
                   ))}
                 {tabValue === 1 && (
                   <>
-                    <Typography color="secondary" gutterBottom>
-                      ausstehend
-                    </Typography>
+                    <Grid item>
+                      <Typography variant="subtitle1" color="secondary" gutterBottom>
+                        ausstehend
+                      </Typography>
+                    </Grid>
                     {pendingRequests.map((pr) => (
                       <Grid item key={pr.id}>
                         <Entry
@@ -273,13 +281,15 @@ export default function Dashboard() {
                         ></Entry>
                       </Grid>
                     ))}
-                    {pendingRequests.length === 0 && <Paper>Keine ausstehenden Anfragen.</Paper>}
+                    {pendingRequests.length === 0 && <Grid item>Keine ausstehenden Anfragen.</Grid>}
 
                     <Divider className={classes.divider} variant="middle" />
 
-                    <Typography color="textSecondary" gutterBottom>
-                      abgelehnt
-                    </Typography>
+                    <Grid item>
+                      <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+                        abgelehnt
+                      </Typography>
+                    </Grid>
                     {declinedRequests.map((pr) => (
                       <Grid item key={pr.id}>
                         <Entry
@@ -291,14 +301,16 @@ export default function Dashboard() {
                         ></Entry>
                       </Grid>
                     ))}
-                    {declinedRequests.length === 0 && <Paper>Keine abgelehnten Anfragen.</Paper>}
+                    {declinedRequests.length === 0 && <Grid item>Keine abgelehnten Anfragen.</Grid>}
                   </>
                 )}
                 {tabValue === 2 && (
                   <>
-                    <Typography color="secondary" gutterBottom>
-                      aktiv
-                    </Typography>
+                    <Grid item>
+                      <Typography variant="subtitle1" color="secondary" gutterBottom>
+                        aktiv
+                      </Typography>
+                    </Grid>
                     {activeRequests.map((pr) => (
                       <Grid item key={pr.id}>
                         <Entry
@@ -310,13 +322,15 @@ export default function Dashboard() {
                         ></Entry>
                       </Grid>
                     ))}
-                    {activeRequests.length === 0 && <Paper>Keine aktiven Helfer.</Paper>}
+                    {activeRequests.length === 0 && <Grid item>Keine aktiven Helfer.</Grid>}
 
                     <Divider className={classes.divider} variant="middle" />
 
-                    <Typography color="textSecondary" gutterBottom>
-                      abgelaufen
-                    </Typography>
+                    <Grid item>
+                      <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+                        abgelaufen
+                      </Typography>
+                    </Grid>
                     {expiredRequests.map((pr) => (
                       <Grid item key={pr.id}>
                         <Entry
@@ -328,7 +342,7 @@ export default function Dashboard() {
                         ></Entry>
                       </Grid>
                     ))}
-                    {expiredRequests.length === 0 && <Paper>Keine abgelaufen Helfer.</Paper>}
+                    {expiredRequests.length === 0 && <Grid item>Keine abgelaufen Helfer.</Grid>}
                   </>
                 )}
                 {tabValue === 0 && searchLoading && <p>Lade Helfer ...</p>}
@@ -377,14 +391,14 @@ export default function Dashboard() {
                         <ListItem key={activityId}>
                           <FormControlLabel
                             control={
-                              <Checkbox
+                              <Radio
                                 checked={!!filterValues[activityId]}
                                 name={activityId}
                                 onChange={(e) => {
                                   const targetName = e.target.name;
                                   const targetChecked = e.target.checked;
 
-                                  setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
+                                  setFilterValues(() => ({ [targetName]: targetChecked }));
                                 }}
                               />
                             }
@@ -409,8 +423,9 @@ export default function Dashboard() {
             await requestHelper({
               variables: {
                 helperId: modalData.helperId,
-                // TODO use correct personnelREquirement
-                personnelRequirementId: 'SomeID',
+                personnelRequirementId: preqsData.personnelRequirements.find(
+                  ({ activityId }) => !!filterValues[activityId],
+                ).id,
                 infoText: data.infoText,
               },
             });

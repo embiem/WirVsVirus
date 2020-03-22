@@ -57,6 +57,7 @@ type Helper {
 
 # PersonnelRequirements should be uniquely identifiable via hospitalId & activityId
 type PersonnelRequirement {
+  id: ID
   hospital: Hospital!
   activityId: String! @examples(values: ["ad-a", "ad-b", "ad-c", "lo-a", "lo-b", "me-a-1", "me-a-2", "me-a-3", "me-a-4", "me-a-5", "me-a-6", "me-a-7", "me-b", "me-c"])
   countRequired: Int! @examples(values: [0, 2, 5, 10])
