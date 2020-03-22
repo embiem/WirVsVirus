@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     auth_jwks_uri: str = "https://dev-healthkeeper.eu.auth0.com/.well-known/jwks.json"
     auth_token: str = ""  # auth token for testing
 
+    auth_enabled: bool = True
+
     class Config:
         env_prefix = "wirvsvirus_"
 

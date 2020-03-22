@@ -6,13 +6,14 @@ from typing import Any, Dict, List, Optional
 import requests
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import JoseError
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from starlette.requests import Request
 from starlette.status import HTTP_401_UNAUTHORIZED
 
 from wirvsvirus.settings import settings
+from wirvsvirus import db, models, crud
 
 JWK = Dict[str, Any]
 
@@ -70,6 +71,40 @@ class Auth(HTTPBearer):
         return payload
 
     async def __call__(self, request: Request) -> Optional[dict]:
+        if not settings.auth_enabled:
+            return {}
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
         token = credentials.credentials
-        return self.decode_jwt(token)
+        payload = self.decode_jwt(token)
+
+
+auth = Auth()
+
+
+async def current_profile(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer), jwt_payload: dict = Depends(auth)) -> models.Profile:
+    """Get current profile.
+
+    If a profile is not available, create one.
+    """
+    user_id = jwt_payload.get('sub')
+    if not user_id:
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED,
+                            detail='Invalid token payload. Must have valid user id')
+    profiles = db.get_database().profiles
+    result = await profiles.find_one({'user_id': jwt_payload['sub']})
+
+    if result:
+        profile = models.Profile(**result)
+    else:
+        token = credentials.credentials
+        # TODO: replace with httpx if too slow, as not async
+        response = requests.get(settings.auth_issuer + 'userinfo', headers={'Authorization': f'Bearer {token}'})
+        user_info = response.json()
+        if not user_info.get('email_verified'):
+            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED,
+                                detail='Email not verified.')
+        base_profile = models.BaseProfile(user_id=user_id, email=user_info['email'])
+        created = crud.create_item('profiles', base_profile)
+        profile = models.Profile(**created)
+
+    return profile

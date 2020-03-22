@@ -18,7 +18,8 @@ services:
         extras: "[dev]"
     environment:
       WIRVSVIRUS_HOST: "0.0.0.0"
-      WIRVSVIRUS_DB_URL: "mongodb://root:pass@db:27017/default"
+      WIRVSVIRUS_DB_URL: "mongodb://db:27017/default"
+      WIRVSVIRUS_AUTH_ENABLED: "false"
     command: "wirvsvirus api --reload"
     volumes:
       - './backend/wirvsvirus:/home/app/code/wirvsvirus'
@@ -31,6 +32,3 @@ services:
 
   db:
     image: mongo:3.6
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: pass
