@@ -27,17 +27,24 @@ app.add_middleware(
 
 
 @app.post('/profile', response_model=models.Profile)
-async def post_match(profile: models.ProfileBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
+async def post_profile(profile: models.ProfileBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Create your profile.
 
     This creates the currently authenticated users profile.
     After authenticating, we need to first create this profile before further actions can be taken.
     """
-    profile = models.IntermediateProfile(**profile.dict(), user_id=jwt_payload['sub'])
-    db_profile = db.get_database().profiles.find_one({'user_id': profile.user_id})
+    profile = models.ProfileIntermediate(**profile.dict(), user_id=jwt_payload['sub'])
+    db_profile = await db.profiles.find_one({'user_id': profile.user_id})
     if db_profile:
         raise HTTPException(409, detail='profile already exists!')
     return await crud.create_item('profiles', profile)
+
+@app.get('/profile', response_model=models.Profile)
+async def get_current_profile(db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
+   profile = await db.profiles.find_one({'user_id': jwt_payload['sub']})
+   if not profile:
+       raise HTTPException(404, detail='No profile found')
+   return profile
 
 @app.post('/matches', response_model=models.Match)
 async def post_match(match: models.MatchBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
