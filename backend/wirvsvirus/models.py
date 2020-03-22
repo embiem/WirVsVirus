@@ -27,17 +27,6 @@ class RoleEnum(str, Enum):
     medical = 'medical'
 
 
-class CapabilityEnum(str, Enum):
-    """Capabailty a helper can have."""
-    hotline = 'hotline'
-    testing = 'testing'
-    care_normal = 'care_normal'
-    care_intensive = 'care_intensive'
-    care_intensive_medical = 'care_intensive_medical'
-    care_intensive_medical_ventilation = 'care_intensive_medical_ventilation'
-    medical_specialist = 'medical_specialist'
-
-
 class ProfileBase(db.MongoModel):
     """Basic profile with authentication info.
 
@@ -162,7 +151,6 @@ class HospitalBase(db.MongoModel):
     wikipedia: Optional[str]
     orig_fid: Optional[str]
     globalid: Optional[str]
-    personnel_requirements: List[PersonnelRequirement]
 
 
 class Hospital(HospitalBase):
