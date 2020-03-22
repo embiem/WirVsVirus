@@ -7,7 +7,6 @@ from pydantic import BaseModel, EmailStr, HttpUrl
 from wirvsvirus import db
 
 
-
 class ProfileTypeEnum(str, Enum):
     """Capabailty a helper can have."""
     hospital = 'hospital'
@@ -55,6 +54,7 @@ class Profile(db.MongoModel):
             return ProfileTypeEnum.hospital
         return None
 
+
 class AddressBase(BaseModel):
     zip_code: str
     street: str
@@ -72,6 +72,7 @@ class HelperBase(db.MongoModel):
     helping_category: RoleEnum
     profile_id: Optional[str] = None
 
+
 class Helper(HelperBase):
     """Define helper model."""
     id: str
@@ -79,12 +80,45 @@ class Helper(HelperBase):
 
 class HospitalBase(db.MongoModel):
     """Hospital model."""
+    _id: str
     name: str
     address: str
     website: Optional[str]
     phone_number: Optional[str]
     profile_id: Optional[str] = None
     helper_demand_ids: List[str] = []
+
+    # geometry: Dict[] = None
+    healthcare_speciality: Optional[str]
+
+    operator: Optional[str]
+    operator_type: Optional[str]
+    contact_phone: Optional[str]
+    contact_website: Optional[str]
+    contact_email: Optional[str]
+    contact_fax: Optional[str]
+    addr: Optional[str]
+    address_full: Optional[str]
+    address_street: Optional[str]
+    address_housenumber: Optional[str]
+    address_city: Optional[str]
+    address_suburb: Optional[str]
+    address_subdistrict: Optional[str]
+    address_district: Optional[str]
+    address_province: Optional[str]
+    address_state: Optional[str]
+    denomination: Optional[str]
+    religion: Optional[str]
+    emergency: Optional[str]
+    rooms: Optional[str]
+    beds: Optional[str]
+    capacity: Optional[str]
+    wheelchair: Optional[str]
+    wikidata: Optional[str]
+    wikipedia: Optional[str]
+    orig_fid: Optional[str]
+    globalid: Optional[str]
+
 
 class Hospital(HospitalBase):
     id: str
@@ -95,6 +129,7 @@ class HelperDemandBase(db.MongoModel):
     hospital_id: str
     capability: CapabilityEnum
     value: int = 1
+
 
 class HelperDemand(HelperDemandBase):
     """Demand for help."""
@@ -107,6 +142,7 @@ class MatchBase(db.MongoModel):
     demand_id: str
     helper_confirmed: bool = False
     hospital_confirmed: bool = False
+
 
 class Match(MatchBase):
     """Match model."""

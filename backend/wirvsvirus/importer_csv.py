@@ -3,13 +3,12 @@ This importer script is ment for initial import of the hospital data into this
 application's database. To ensure the import steps are reproducable for other
 developers and the project database can be initially filled.
 """
+import asyncio
 import csv
+import hashlib
 import logging
 import sys
-from multiprocessing import Pool
-import asyncio
 
-from settings import settings
 from wirvsvirus import db
 
 from wirvsvirus.models import HospitalBase
@@ -23,16 +22,52 @@ async def get_data_from_arcgis_file(file) -> list:
     with open(file, 'r') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=',')
         for row in reader:
-            hb = HospitalBase(name=row["name"],
-                              address=row["address_full"],
-                              website=row["contact_website"],
-                              phone_number=row["contact_phone"]
-                              # geometry=[
-                              #    x: row['X'],
-                              #    y: row['Y']
-                              # ]
-                              )
-            breakpoint()
+            # TODO: Quickly hacked, probably better to cmap the fields and
+            #       throw them into the constructor via kwargs-dictionary
+
+            # Creating an access id from the global id for idempotence
+            mongo_id = hashlib.sha224(
+                row["GlobalID"].encode('utf-8')).hexdigest()
+            mongo_id = mongo_id[:24]
+
+            hb = HospitalBase(
+                _id=mongo_id,
+                name=row["name"],
+                address=row["address_full"],
+                website=row["contact_website"],
+                phone_number=row["contact_phone"],
+
+                operator=row["operator"],
+                operator_type=row["operator_type"],
+                contact_email=row["contact_email"],
+                contact_fax=row["contact_fax"],
+                addr=row["addr"],
+                address_full=row["address_full"],
+                address_street=row["address_street"],
+                address_housenumber=row["address_housenumber"],
+                address_city=row["address_city"],
+                address_suburb=row["address_suburb"],
+                address_subdistrict=row["address_subdistrict"],
+                address_district=row["address_district"],
+                address_province=row["address_province"],
+                address_state=row["address_state"],
+                denomination=row["denomination"],
+                religion=row["religion"],
+                emergency=row["emergency"],
+                rooms=row["rooms"],
+                beds=row["beds"],
+                capacity=row["capacity"],
+                wheelchair=row["wheelchair"],
+                wikidata=row["wikidata"],
+                wikipedia=row["wikipedia"],
+                orig_fid=row["ORIG_FID"],
+                globalid=row["GlobalID"]
+                # TODO: Geomety added
+                # geometry=[
+                #              #    x: row['X'],
+                #              #    y: row['Y']
+                #              # ]
+                )
             await create_item("hospitals", hb)
 
 
@@ -64,7 +99,7 @@ def initial_hospital_import():
     logging.debug("initial_hospital_import was called. Starting import.")
     # TODO: Configure/retrieve DATA Source
     hospitals = get_data_from_arcgis_file()
-    #hospitals = get_data_from_arcgis()
+    # hospitals = get_data_from_arcgis()
 
     # Transform the received data a little bit to fit better our purposes
     # TODO: Currently only one result is transformed, needs to be fixed - wip
@@ -99,7 +134,8 @@ async def test_db():
 if __name__ == '__main__':
     db.connect()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(get_data_from_arcgis_file('clinics.csv'))
+    loop.run_until_complete(
+        get_data_from_arcgis_file('data/hospital_openstreetmap_20200317.csv'))
     loop.close()
 
    # result = pool.apply_async(
