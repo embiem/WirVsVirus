@@ -24,66 +24,49 @@ import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 
 import Entry from './Entry';
-import areasOfWork from '../../config/areas_of_work.json';
+import pocData from '../../config/poc_data.json';
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 const SEARCH_QUERY = gql`
-  query searchQuery($activities: [ID], $start: String!, $end: String!) {
+  query searchQuery($activities: [String], $start: String, $end: String) {
     search(activities: $activities, start: $start, end: $end) {
       id
-      qualification {
-        name
-      }
-      activities {
-        id
-        name
-      }
+      qualificationId
+      workExperienceInYears
+      activityIds
     }
   }
 `;
 
-const PERSONNEL_REQUESTS_QUERY = gql`
-  query personnelRequestsQuery($hospitalId: ID, $start: String!, $end: String!) {
-    personnelRequests(hospitalId: $hospitalId, start: $start, end: $end) {
+const MATCHES_QUERY = gql`
+  query {
+    matches {
       id
       helper {
-        qualification {
-          name
-        }
-        activities {
-          id
-          name
-        }
-      }
-      activity {
         id
-        name
+        qualificationId
+        workExperienceInYears
+        activityIds
       }
-      status
       startDate
       endDate
+      status
+      infoText
     }
   }
 `;
 
 const REQUEST_HELPER = gql`
-  mutation requestHelper($helperId: ID) {
-    requestHelper(helperId: $helperId) {
+  mutation requestHelper($helperId: ID, $personnelRequirementId: ID, $infoText: String) {
+    requestHelper(
+      helperId: $helperId
+      personnelRequirementId: $personnelRequirementId
+      infoText: $infoText
+    ) {
       id
-      name
-      email
-      phone
-      qualification {
-        id
-        name
-      }
-      activities {
-        id
-        name
-      }
     }
   }
 `;
@@ -139,16 +122,8 @@ export default function Dashboard() {
     },
   );
 
-  const { loading: requestsLoading, data: requestsData, refetch: requestsRefetch } = useQuery(
-    PERSONNEL_REQUESTS_QUERY,
-    {
-      variables: {
-        // TODO query hospital of logged-in user before
-        hospitalId: 'test',
-        start: startDate.getTime().toString(),
-        end: endDate.getTime().toString(),
-      },
-    },
+  const { loading: requestsLoading, data: matchesData, refetch: matchesRefetch } = useQuery(
+    MATCHES_QUERY,
   );
 
   // Mutation
@@ -166,19 +141,19 @@ export default function Dashboard() {
     const active = [];
     const expired = [];
 
-    if (requestsData && requestsData.personnelRequests) {
-      requestsData.personnelRequests.forEach((pr) => {
-        if (pr.status === 'Pending') {
-          pending.push(pr);
-        } else if (pr.status === 'Declined') {
-          declined.push(pr);
-        } else if (pr.status === 'Accepted') {
+    if (matchesData && matchesData.matches) {
+      matchesData.matches.forEach((match) => {
+        if (match.status === 'Pending') {
+          pending.push(match);
+        } else if (match.status === 'Declined') {
+          declined.push(match);
+        } else if (match.status === 'Accepted') {
           // TODO needs to correctly check days
           const curDate = new Date().getTime();
-          if (pr.startDate < curDate && pr.endDate > curDate) {
-            active.push(pr);
+          if (match.startDate < curDate && match.endDate > curDate) {
+            active.push(match);
           } else {
-            expired.push(pr);
+            expired.push(match);
           }
         }
       });
@@ -187,7 +162,7 @@ export default function Dashboard() {
     setDeclinedRequests(declined);
     setActiveRequests(active);
     setExpiredRequests(expired);
-  }, [requestsData]);
+  }, [matchesData]);
 
   // Re-fetch on filter change
   useEffect(() => {
@@ -230,8 +205,11 @@ export default function Dashboard() {
                     <Grid item key={searchEntry.id}>
                       <Entry
                         id={searchEntry.id}
-                        title={searchEntry.qualification.name}
-                        skills={searchEntry.activities}
+                        title={pocData.qualifications[searchEntry.qualificationId].name.de}
+                        workExperienceInYears={searchEntry.workExperienceInYears}
+                        skills={searchEntry.activityIds.map(
+                          (activityId) => pocData.activities[activityId],
+                        )}
                       >
                         <Button
                           onClick={async () => {
@@ -253,12 +231,7 @@ export default function Dashboard() {
                                 end: endDate.getTime().toString(),
                               });
 
-                              requestsRefetch({
-                                // TODO query hospital of logged-in user before
-                                hospitalId: 'test',
-                                start: startDate.getTime().toString(),
-                                end: endDate.getTime().toString(),
-                              });
+                              matchesRefetch();
                             } catch (err) {
                               console.error(err);
                             }
@@ -281,7 +254,7 @@ export default function Dashboard() {
                       <Grid item key={pr.id}>
                         <Entry
                           id={pr.id}
-                          title={pr.helper.qualification.name}
+                          title={pocData.qualifications[pr.helper.qualificationId].name.de}
                           skills={pr.helper.activities}
                         ></Entry>
                       </Grid>
@@ -297,7 +270,7 @@ export default function Dashboard() {
                       <Grid item key={pr.id}>
                         <Entry
                           id={pr.id}
-                          title={pr.helper.qualification.name}
+                          title={pocData.qualifications[pr.helper.qualificationId].name.de}
                           skills={pr.helper.activities}
                         ></Entry>
                       </Grid>
@@ -314,7 +287,7 @@ export default function Dashboard() {
                       <Grid item key={pr.id}>
                         <Entry
                           id={pr.id}
-                          title={pr.helper.qualification.name}
+                          title={pocData.qualifications[pr.helper.qualificationId].name.de}
                           skills={pr.helper.activities}
                         ></Entry>
                       </Grid>
@@ -330,7 +303,7 @@ export default function Dashboard() {
                       <Grid item key={pr.id}>
                         <Entry
                           id={pr.id}
-                          title={pr.helper.qualification.name}
+                          title={pocData.qualifications[pr.helper.qualificationId].name.de}
                           skills={pr.helper.activities}
                         ></Entry>
                       </Grid>
@@ -366,35 +339,43 @@ export default function Dashboard() {
                 />
               </ListItem>
 
-              {areasOfWork.categories.map((category) => (
-                <React.Fragment key={category.id}>
-                  <Divider className={classes.divider} component="li" />
-                  <li>
-                    <Typography color="textSecondary" display="block" variant="caption">
-                      {category.name.de}
-                    </Typography>
-                  </li>
-                  {category.children.map((area) => (
-                    <ListItem key={area.id}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={!!filterValues[area.id]}
-                            name={area.id}
-                            onChange={(e) => {
-                              const targetName = e.target.name;
-                              const targetChecked = e.target.checked;
+              {Object.keys(pocData.activityCategories).map((categoryId) => {
+                const category = pocData.activityCategories[categoryId];
 
-                              setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
-                            }}
+                return (
+                  <React.Fragment key={categoryId}>
+                    <Divider className={classes.divider} component="li" />
+                    <li>
+                      <Typography color="textSecondary" display="block" variant="caption">
+                        {category.name.de}
+                      </Typography>
+                    </li>
+                    {category.children.map((activityId) => {
+                      console.log(activityId);
+                      if (!pocData.activities[activityId]) console.warn(activityId);
+                      return (
+                        <ListItem key={activityId}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={!!filterValues[activityId]}
+                                name={activityId}
+                                onChange={(e) => {
+                                  const targetName = e.target.name;
+                                  const targetChecked = e.target.checked;
+
+                                  setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
+                                }}
+                              />
+                            }
+                            label={pocData.activities[activityId].name.de}
                           />
-                        }
-                        label={area.name.de}
-                      />
-                    </ListItem>
-                  ))}
-                </React.Fragment>
-              ))}
+                        </ListItem>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
             </List>
           </Grid>
         </Grid>

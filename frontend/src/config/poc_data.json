@@ -1,0 +1,166 @@
+{
+  "activityCategories": {
+    "ad": {
+      "name": {
+        "de": "Administration"
+      },
+      "children": ["ad-a", "ad-b", "ad-c", "ad-d", "ad-e"]
+    },
+    "lo": {
+      "name": {
+        "de": "Logistik"
+      },
+      "children": ["lo-a", "lo-b"]
+    },
+    "me": {
+      "name": {
+        "de": "Medizin"
+      },
+      "children": [
+        "me-a-1",
+        "me-a-2",
+        "me-a-3",
+        "me-a-4",
+        "me-a-5",
+        "me-a-6",
+        "me-a-7",
+        "me-b",
+        "me-c"
+      ]
+    }
+  },
+  "activities": {
+    "ad-a": {
+      "name": {
+        "de": "Personalabteilung"
+      }
+    },
+    "ad-b": {
+      "name": {
+        "de": "Kommunikation"
+      }
+    },
+    "ad-c": {
+      "name": {
+        "de": "IT-Unterstützung"
+      }
+    },
+    "ad-d": {
+      "name": {
+        "de": "Buchhaltung"
+      }
+    },
+    "ad-e": {
+      "name": {
+        "de": "Rechtsabteilung"
+      }
+    },
+    "lo-a": {
+      "name": {
+        "de": "Planung, Materialbeschaffung"
+      }
+    },
+    "lo-b": {
+      "name": {
+        "de": "logistische Hilfsarbeiten, wie Krankentransport, Bluttransport, RTW"
+      }
+    },
+    "me-a-1": {
+      "name": {
+        "de": "Beratung (Hotline/Mail)"
+      }
+    },
+    "me-a-2": {
+      "name": {
+        "de": "Aufnahmebereich PatientInnen"
+      }
+    },
+    "me-a-3": {
+      "name": {
+        "de": "Normalstation - Pflege"
+      }
+    },
+    "me-a-4": {
+      "name": {
+        "de": "Intensivstation – Pflege"
+      }
+    },
+    "me-a-5": {
+      "name": {
+        "de": "Intensivstation – med. Versorgung ohne Beatmung"
+      }
+    },
+    "me-a-6": {
+      "name": {
+        "de": "Intensivstation – med. Versorgung mit Beatmung"
+      }
+    },
+    "me-a-7": {
+      "name": {
+        "de": "Beatmung verändern (Assistenz- / Facharzt)"
+      }
+    },
+    "me-b": {
+      "name": {
+        "de": "Operativer Tätigkeitsbereich"
+      }
+    },
+    "me-c": {
+      "name": {
+        "de": "Weitere Tätigkeitsbereiche mit med. Vorausbildung"
+      }
+    }
+  },
+  "qualifications": {
+    "bachelor": {
+      "name": {
+        "de": "Bachelor"
+      }
+    },
+    "master": {
+      "name": {
+        "de": "Master"
+      }
+    },
+    "diplom": {
+      "name": {
+        "de": "Diplom"
+      }
+    },
+    "1-exam": {
+      "name": {
+        "de": "1 Staatsexamen"
+      }
+    },
+    "2-exam": {
+      "name": {
+        "de": "2 Staatsexamen"
+      }
+    },
+    "aprobation": {
+      "name": {
+        "de": "Aprobation"
+      }
+    },
+    "care-edu": {
+      "name": {
+        "de": "Pflege mit Ausbildung"
+      }
+    },
+    "care-exam": {
+      "name": {
+        "de": "Pflege mit Examen"
+      }
+    },
+    "para-1": {
+      "name": {
+        "de": "Rettungssanitäter"
+      }
+    },
+    "para-2": {
+      "name": {
+        "de": "Rettungsassistent"
+      }
+    }
+  }
+}
