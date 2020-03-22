@@ -75,7 +75,7 @@ class MatchBase(db.MongoModel):
     personnel_requirement_id: str
     start_date: str
     end_date: str
-    status: str
+    status: MatchStatus
     info_text: str
 
 
