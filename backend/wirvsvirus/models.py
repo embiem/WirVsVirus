@@ -106,8 +106,6 @@ class HelperBase(db.MongoModel):
     # Activities managed in frontend. IDs stored as strings in DB
     activity_ids: List[str]
 
-    profile_id: Optional[str] = None
-
 
 class Helper(HelperBase):
     """Define helper model."""
