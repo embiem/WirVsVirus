@@ -7,7 +7,7 @@ services:
     volumes:
       - ${PWD}/frontend:/app
     ports:
-      - "8100:3000"
+      - "127.0.0.1:8100:3000"
     command: "yarn prod"
 
   backend:
@@ -25,7 +25,7 @@ services:
       - './backend/wirvsvirus:/home/app/code/wirvsvirus'
       - './backend/tests:/home/app/code/tests'
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     # need this to enable attaching to container and interacting with debugger
     stdin_open: true
     tty: true
@@ -33,9 +33,6 @@ services:
   db:
     image: mongo:3.6
     ports:
-      - "27018:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: pass
-    volumes: 
+      - "127.0.0.1:27018:27017"
+    volumes:
       - './mongo:/data/db'
