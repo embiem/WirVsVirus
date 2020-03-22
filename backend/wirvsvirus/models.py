@@ -83,12 +83,12 @@ class HelperBase(db.MongoModel):
     first_name: str
     last_name: str
     email: str
-    phone: str
+    phone: Optional[str]
     vaccination: Optional[str]
     housing_situation: Optional[str]
 
-    zip_code: str
-    street: str
+    zip_code: Optional[str]
+    street: Optional[str]
     location: Optional[Location]
 
     # Qualifications managed in frontend and stored in db as strings.
@@ -97,7 +97,6 @@ class HelperBase(db.MongoModel):
 
     # Activities managed in frontend. IDs stored as strings in DB
     activity_ids: List[str]
-    match_ids: List[str]
 
     profile_id: Optional[str] = None
 
