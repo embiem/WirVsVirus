@@ -3,6 +3,8 @@
 from typing import List, Any
 from datetime import datetime, timedelta
 from uuid import UUID
+from math import sqrt
+import logging
 
 from fastapi import Depends, FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
@@ -66,5 +68,51 @@ async def create_helper(helper: models.HelperBase, db: db.AsyncIOMotorDatabase =
 async def create_hospital(hospital: models.HospitalBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Post match."""
     return await crud.create_item('hospitals', hospital)
+
+
+# TODO: correct the response_model
+@app.post('/nearest_hospital')  # , response_model=models.Hospital)
+async def find_nearest_hospitals(long=None, lat=None):
+    """ Receives a position (long, lat) to find the nearest hospitals and
+    returns the closest one """
+    # MongoDB optimization to have a maximum limit on results
+    # As there are currently round abount 2800 hospitals we are safe with this
+    # limit as long as we stay in Germany
+    limit = 5000
+    # The currently shortest calculated distance
+    shortest_distance = None
+    shorest_hospital = None
+
+    # Get all Hospitals from MongoDB
+    hospitals_collection = db.get_database().get_collection('hospitals')
+    if not hospitals_collection:
+        raise HTTPException(404, detail='No hospitals collection found')
+
+    hospitals = await hospitals_collection.find().to_list(limit)
+    # Iterate over all hospitals
+    for h in hospitals:
+        # Calc distance two the startpoint
+        cur_d = calc_line_distance(
+            float(long), float(lat),
+            float(h['location']['coordinates'][0]),
+            float(h['location']['coordinates'][1]))
+        # Safe if its the current shortest distance
+        if not shortest_distance or cur_d < shortest_distance:
+            shortest_distance = cur_d
+            shorest_hospital = h
+
+    logging.debug(
+            f'start_long: {long}, start_lat: {lat}, calc_line_distance: '
+            f'{shortest_distance}, hospital: {shorest_hospital}')
+
+    return str(shorest_hospital)
+
+
+def calc_line_distance(x1, y1, x2, y2):
+    """ Simplest math function to calculate the direct air distance between two
+    points """
+    d = sqrt((x1-x2)**2 + (y1-y2)**2)
+    return d
+
 
 app.add_route("/graphql", graphql_app)
