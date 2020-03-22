@@ -9,3 +9,7 @@ async def create_item(collection: str, item: BaseModel) -> dict:
     result = await db.get_database()[collection].insert_one(item.dict())
     output = await db.get_database()[collection].find_one({'_id': result.inserted_id})
     return output
+
+async def get_item(collection: str, id: str) -> dict:
+    """Simple create item convenience function."""
+    return await db.get_database()[collection].find_one({'_id': id})
