@@ -25,6 +25,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 
 import Entry from './Entry';
+import RequestModal from './RequestModal';
 import pocData from '../../config/poc_data.json';
 
 function Alert(props) {
@@ -94,6 +95,10 @@ export default function Dashboard() {
   // Snackbar
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('Erfolg!');
+
+  // Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({ helperId: null });
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -213,29 +218,11 @@ export default function Dashboard() {
                         )}
                       >
                         <Button
-                          onClick={async () => {
-                            try {
-                              await requestHelper({
-                                variables: {
-                                  helperId: searchEntry.id,
-                                },
-                              });
-
-                              setSnackbarMessage('Helfer erfolgreich angefragt!');
-                              setSnackbarOpen(true);
-
-                              searchRefetch({
-                                activities: Object.entries(filterValues)
-                                  .filter(([, isFilterActive]) => isFilterActive)
-                                  .map(([activityId]) => activityId),
-                                start: startDate.getTime().toString(),
-                                end: endDate.getTime().toString(),
-                              });
-
-                              matchesRefetch();
-                            } catch (err) {
-                              console.error(err);
-                            }
+                          onClick={() => {
+                            setModalData({
+                              helperId: searchEntry.id,
+                            });
+                            setModalOpen(true);
                           }}
                           className={classes.button}
                           variant="contained"
@@ -385,6 +372,38 @@ export default function Dashboard() {
           </Grid>
         </Grid>
       </Container>
+      <RequestModal
+        open={modalOpen}
+        onSubmit={async (data) => {
+          setModalOpen(false);
+
+          try {
+            await requestHelper({
+              variables: {
+                helperId: modalData.helperId,
+                personnelRequirementId: 'SomeID',
+                infoText: data.infoText,
+              },
+            });
+
+            setSnackbarMessage('Helfer erfolgreich angefragt!');
+            setSnackbarOpen(true);
+
+            searchRefetch({
+              activities: Object.entries(filterValues)
+                .filter(([, isFilterActive]) => isFilterActive)
+                .map(([activityId]) => activityId),
+              start: startDate.getTime().toString(),
+              end: endDate.getTime().toString(),
+            });
+
+            matchesRefetch();
+          } catch (err) {
+            console.error(err);
+          }
+        }}
+        onClose={() => setModalOpen(false)}
+      />
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity="success">
           {snackbarMessage}
