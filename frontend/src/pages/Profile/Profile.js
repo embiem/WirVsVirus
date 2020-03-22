@@ -1,7 +1,8 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import {
-  Container, Paper, Box, Avatar,
+  Container, Button, Paper, Box, Avatar,
 } from '@material-ui/core';
+import { Link as RouterLink } from '@reach/router';
 import { useAuth0 } from '../../utils/react-auth0-spa';
 import useLoginRedirect from '../../utils/useLoginRedirect';
 
@@ -24,7 +25,7 @@ const Profile = () => {
             </Box>
               <h2>{user.name}</h2>
               <p>{user.email}</p>
-
+               <Button to="/register" component={RouterLink}>registrieren</Button>
           </Box>
         </Paper>
      </Container>
