@@ -67,10 +67,15 @@ class HelperBase(db.MongoModel):
     name: str
     email: str
     address: str  # AddressModel
+    X: float
+    Y: float
     phone_number: str
-    capability: CapabilityEnum
-    helping_category: RoleEnum
+    activities: List[str]  # List of acitvity ids
+    qualification_name: str
+    years: int
+    vaccination: Optional[str]
     profile_id: Optional[str] = None
+
 
 class Helper(HelperBase):
     """Define helper model."""
@@ -90,13 +95,13 @@ class Hospital(HospitalBase):
     id: str
 
 
-class HelperDemandBase(db.MongoModel):
+class RequestBase(db.MongoModel):
     """Demand for help."""
     hospital_id: str
-    capability: CapabilityEnum
+    activity_id: str
     value: int = 1
 
-class HelperDemand(HelperDemandBase):
+class Request(RequestBase):
     """Demand for help."""
     id: str = None
 
@@ -104,9 +109,8 @@ class HelperDemand(HelperDemandBase):
 class MatchBase(db.MongoModel):
     """Match model."""
     helper_id: str
-    demand_id: str
-    helper_confirmed: bool = False
-    hospital_confirmed: bool = False
+    request_id: str
+    request_status: ["Pending", "Declined", "Accepted"]
 
 class Match(MatchBase):
     """Match model."""
