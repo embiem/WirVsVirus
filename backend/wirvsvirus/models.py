@@ -1,6 +1,6 @@
 
 from enum import Enum
-from typing import List, Optional, Union, Dict
+from typing import List, Optional, Union, Dict, Tuple
 
 from pydantic import BaseModel, EmailStr, HttpUrl
 
@@ -74,6 +74,11 @@ class Helper(HelperBase):
     id: str
 
 
+class MongoDbLocation(db.MongoModel):
+    type: str
+    coordinates: Tuple[int, int]
+
+
 class HospitalBase(db.MongoModel):
     """Hospital model."""
     _id: str
@@ -84,7 +89,7 @@ class HospitalBase(db.MongoModel):
     profile_id: Optional[str] = None
     personnel_requirement_ids: List[str] = []
 
-    location: Dict[str, Union[str, List[str]]] = None
+    location: Optional[MongoDbLocation] = None
     healthcare_speciality: Optional[str]
 
     operator: Optional[str]
