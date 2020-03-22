@@ -75,7 +75,12 @@ class Match(MatchBase):
 
 class Location(db.MongoModel):
     type: str
-    coordinates: List[str]
+    coordinates: Tuple[int, int]
+
+
+# class MongoDbLocation(db.MongoModel):
+#     type: str
+#     coordinates: Tuple[int, int]
 
 
 class HelperBase(db.MongoModel):
@@ -106,11 +111,6 @@ class Helper(HelperBase):
     id: str
 
 
-class MongoDbLocation(db.MongoModel):
-    type: str
-    coordinates: Tuple[int, int]
-
-
 class HospitalBase(db.MongoModel):
     """Hospital model."""
     name: str
@@ -120,7 +120,7 @@ class HospitalBase(db.MongoModel):
     profile_id: Optional[str] = None
     personnel_requirement_ids: List[str] = []
 
-    location: Optional[MongoDbLocation] = None
+    location: Optional[Location] = None
     healthcare_speciality: Optional[str]
 
     operator: Optional[str]
@@ -154,3 +154,12 @@ class HospitalBase(db.MongoModel):
 
 class Hospital(HospitalBase):
     id: str
+
+
+class Proposition(db.MongoModel):
+    hospital_id: str
+    helper_ids: List[str]
+
+
+class MatchProposition(db.MongoModel):
+    allocations: List[Proposition]
