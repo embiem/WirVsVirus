@@ -13,6 +13,13 @@ class ProfileTypeEnum(str, Enum):
     helper = 'helper'
 
 
+class MatchStatus(str, Enum):
+    """Match status."""
+    pending = 'Pending'
+    declined = 'Declined'
+    accepted = 'Accepted'
+
+
 class RoleEnum(str, Enum):
     """Capabailty a helper can have."""
     admin = 'admin'
@@ -50,36 +57,65 @@ class Profile(ProfileIntermediate):
     id: str
 
 
-class AddressBase(BaseModel):
-    zip_code: str
-    street: str
-    latitude: float
-    longitude: float
+class PersonnelRequirementBase(db.MongoModel):
+    """Personnel requirement for help."""
+    hospital_id: str
+    activity_id: str
+    value: int = 1
 
 
-class HelperBase(db.MongoModel):
-    """Define helper model."""
-    name: str
-    email: str
-    address: str  # AddressModel
-    X: float
-    Y: float
-    phone_number: str
-    activities: List[str]  # List of acitvity ids
-    qualification_name: str
-    years: int
-    vaccination: Optional[str]
-    profile_id: Optional[str] = None
+class PersonnelRequirement(PersonnelRequirementBase):
+    """Personnel requirement for help."""
+    id: str = None
 
 
-class Helper(HelperBase):
-    """Define helper model."""
+class MatchBase(db.MongoModel):
+    """Match model."""
+    helper_id: str
+    personnel_requirement_id: str
+    start_date: str
+    end_date: str
+    status: str
+    info_text: str
+
+
+class Match(MatchBase):
+    """Match model."""
     id: str
 
 
 class Location(db.MongoModel):
     type: str
     coordinates: List[str]
+
+
+class HelperBase(db.MongoModel):
+    """Define helper model."""
+    first_name: str
+    last_name: str
+    email: str
+    phone: str
+    vaccination: Optional[str]
+    housing_situation: Optional[str]
+
+    zip_code: str
+    street: str
+    location: Optional[Location]
+
+    # Qualifications managed in frontend and stored in db as strings.
+    qualification_id: str
+    work_experience_in_years: int
+
+    # Activities managed in frontend. IDs stored as strings in DB
+    activity_ids: List[str]
+    match_ids: List[str]
+
+    profile_id: Optional[str] = None
+
+
+class Helper(HelperBase):
+    """Define helper model."""
+    id: str
 
 
 class HospitalBase(db.MongoModel):
@@ -122,31 +158,8 @@ class HospitalBase(db.MongoModel):
     wikipedia: Optional[str]
     orig_fid: Optional[str]
     globalid: Optional[str]
+    personnel_requirements: List[PersonnelRequirement]
 
 
 class Hospital(HospitalBase):
-    id: str
-
-
-class PersonnelRequirementBase(db.MongoModel):
-    """Demand for help."""
-    hospital_id: str
-    activity_id: str
-    value: int = 1
-
-
-class PersonnelRequirement(PersonnelRequirementBase):
-    """Demand for help."""
-    id: str = None
-
-
-class MatchBase(db.MongoModel):
-    """Match model."""
-    helper_id: str
-    request_id: str
-    request_status: str
-
-
-class Match(MatchBase):
-    """Match model."""
     id: str
