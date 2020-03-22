@@ -99,6 +99,9 @@ const useStyles = makeStyles((theme) => ({
   cardsContainer: {
     width: 550,
   },
+  divider: {
+    marginTop: theme.spacing(3),
+  },
 }));
 
 export default function Dashboard() {
@@ -285,7 +288,7 @@ export default function Dashboard() {
                     ))}
                     {pendingRequests.length === 0 && <Paper>Keine ausstehenden Anfragen.</Paper>}
 
-                    <Divider variant="middle" />
+                    <Divider className={classes.divider} variant="middle" />
 
                     <Typography color="textSecondary" gutterBottom>
                       abgelehnt
@@ -317,6 +320,8 @@ export default function Dashboard() {
                       </Grid>
                     ))}
                     {activeRequests.length === 0 && <Paper>Keine aktiven Helfer.</Paper>}
+
+                    <Divider className={classes.divider} variant="middle" />
 
                     <Typography color="textSecondary" gutterBottom>
                       abgelaufen
@@ -363,7 +368,7 @@ export default function Dashboard() {
 
               {areasOfWork.categories.map((category) => (
                 <React.Fragment key={category.id}>
-                  <Divider component="li" />
+                  <Divider className={classes.divider} component="li" />
                   <li>
                     <Typography color="textSecondary" display="block" variant="caption">
                       {category.name.de}
