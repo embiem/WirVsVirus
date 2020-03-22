@@ -26,7 +26,7 @@ def test_profile_api(test_client, db_session, mock_auth):
 
 
 def test_matches_api(test_client, db_session, mock_auth):
-    match = models.MatchBase(helper_id=str(ObjectId()), demand_id=str(ObjectId()))
+    match = models.MatchBase(helper_id=str(ObjectId()), personnel_requirement_id=str(ObjectId()))
     response = test_client.post('/matches', data=match.json())
     assert response.status_code == 200
 
@@ -48,6 +48,8 @@ def test_auth(auth_token, test_client, db_session):
 
     Skipped if authentication token is missing.
     """
-    match = models.MatchBase(helper_id=str(ObjectId()), demand_id=str(ObjectId()))
+    match = models.MatchBase(helper_id=str(ObjectId()), personnel_requirement_id=str(ObjectId()))
     m = test_client.post('/matches', data=match.json(), headers={'Authorization': f'Bearer {auth_token}'})
     assert m.status_code == 200
+
+

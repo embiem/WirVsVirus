@@ -82,7 +82,7 @@ class HospitalBase(db.MongoModel):
     website: Optional[str]
     phone_number: Optional[str]
     profile_id: Optional[str] = None
-    helper_demand_ids: List[str] = []
+    personnel_requirement_ids: List[str] = []
 
     # geometry: Dict[] = None
     healthcare_speciality: Optional[str]
@@ -120,14 +120,14 @@ class Hospital(HospitalBase):
     id: str
 
 
-class HelperDemandBase(db.MongoModel):
+class PersonnelRequirementBase(db.MongoModel):
     """Demand for help."""
     hospital_id: str
     capability: CapabilityEnum
     value: int = 1
 
 
-class HelperDemand(HelperDemandBase):
+class PersonnelRequirement(PersonnelRequirementBase):
     """Demand for help."""
     id: str = None
 
@@ -135,7 +135,7 @@ class HelperDemand(HelperDemandBase):
 class MatchBase(db.MongoModel):
     """Match model."""
     helper_id: str
-    demand_id: str
+    personnel_requirement_id: str
     helper_confirmed: bool = False
     hospital_confirmed: bool = False
 

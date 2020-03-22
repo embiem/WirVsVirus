@@ -1,7 +1,8 @@
 import logging
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from graphene_pydantic import PydanticObjectType
+from graphql import GraphQLError
 from graphql.execution.executors.asyncio import AsyncioExecutor
 from bson import ObjectId
 import graphene
@@ -20,12 +21,21 @@ class Helper(PydanticObjectType):
         model = models.Helper
 
 
-class HelperDemand(PydanticObjectType):
+class PersonnelRequirement(PydanticObjectType):
+
+    matches = graphene.List(lambda: Match)
+
     class Meta:
-        model = models.HelperDemand
+        model = models.PersonnelRequirement
 
 
 class Hospital(PydanticObjectType):
+
+    personnel_requirements = graphene.List(PersonnelRequirement)
+
+    async def resolve_personnel_requirements(self, info):
+        document = await db.get_database().personnel_requirements.find({'hospital_id': ObjectId(self.id)})
+        return models.Hospital(**document)
 
     class Meta:
         model = models.Hospital
@@ -43,6 +53,8 @@ class Query(graphene.ObjectType):
 
     async def resolve_hospital(self, info, id):
         document = await db.get_database().hospitals.find_one({'_id': ObjectId(id)})
+        if not document:
+            raise GraphQLError()
         return models.Hospital(**document)
 
     async def resolve_helper(self, info, id):
