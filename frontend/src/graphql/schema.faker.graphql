@@ -120,6 +120,7 @@ type Mutation {
   # Can be called by hospital or helper to accept/decline a request
   updateRequest(matchId: ID, status: MatchStatus): Match
   
+  # Called by hospital to update personnel requirements for that hospital
   # PersonnelRequirements should be uniquely identifiable via hospitalId & activityId
-  setPersonnelRequirement(hospitalId: ID, activityId: String, countRequired: Int): PersonnelRequirement
+  setPersonnelRequirement(activityId: String, countRequired: Int): PersonnelRequirement
 }
