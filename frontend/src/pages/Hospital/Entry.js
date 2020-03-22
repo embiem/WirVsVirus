@@ -18,27 +18,6 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme) => ({
-  /* root: {
-    width: 450,
-  },
-  bullet: {
-    display: 'inline-block',
-    margin: '0 2px',
-    transform: 'scale(0.8)',
-  },
-  title: {
-    fontSize: 14,
-  },
-  button: {
-    marginLeft: 'auto',
-  },
-  table: {
-    border: 'none',
-    padding: 8,
-  },
-  cardActions: {
-    padding: 16,
-  }, */
   root: {
     width: '100%',
   },
@@ -102,53 +81,5 @@ export default function SearchEntry({
       </ExpansionPanelDetails>
       <ExpansionPanelActions>{children}</ExpansionPanelActions>
     </ExpansionPanel>
-
-  /*     <Card className={classes.root}>
-      <CardContent>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell className={classes.table}>{title}</TableCell>
-                <TableCell className={classes.table} align="right">
-                  ID ${id}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell className={classes.table}>Hoechster Abschluss:</TableCell>
-                <TableCell className={classes.table} align="right">
-                  1. Staatsexamen
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className={classes.table}>Verfuegbarer Zeitraum:</TableCell>
-                <TableCell className={classes.table} align="right">
-                  24.03. bis 25.04
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className={classes.table}>Skills:</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className={classes.table}>
-                  <Grid container spacing={2}>
-                    {skills.map((skill) => (
-                      <Grid item key={skill.id}>
-                        <Chip label={skill.name} />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </TableCell>
-                <TableCell className={classes.table} align="right">
-                  {children}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </CardContent>
-    </Card> */
   );
 }
