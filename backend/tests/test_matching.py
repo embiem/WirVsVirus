@@ -161,11 +161,17 @@ def test_matching():
     results = model.results
     assert results == {
         "objective": 1033.0,
-        "allocation": {
-            "Hospital Cologne": ["2", "7", "9", "10", "11", "12"],
-            "Hospital Berlin": ["4"],
-            "Hospital Frankfurt": ["1", "3", "5", "6", "14"],
-        },
+        "allocations": [
+            {
+                "hospital_id": "Hospital Cologne",
+                "helper_ids": ["2", "7", "9", "10", "11", "12"],
+            },
+            {"hospital_id": "Hospital Berlin", "helper_ids": ["4"]},
+            {
+                "hospital_id": "Hospital Frankfurt",
+                "helper_ids": ["1", "3", "5", "6", "14"],
+            },
+        ],
     }
 
 
@@ -213,4 +219,6 @@ def test_propose_matching_endpoint(test_client, db_session, mock_auth):
     response = test_client.get("/matches/propositions")
     assert response.status_code == 200
     response = response.json()
-    assert isinstance(response, dict)
+    assert "allocations" in response
+    assert "hospitalId" in response["allocations"][0]
+    assert "helperIds" in response["allocations"][0]

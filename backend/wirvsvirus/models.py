@@ -154,3 +154,12 @@ class HospitalBase(db.MongoModel):
 
 class Hospital(HospitalBase):
     id: str
+
+
+class Proposition(db.MongoModel):
+    hospital_id: str
+    helper_ids: List[str]
+
+
+class MatchProposition(db.MongoModel):
+    allocations: List[Proposition]

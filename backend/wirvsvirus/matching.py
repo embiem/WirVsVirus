@@ -66,10 +66,11 @@ class MatchingModel:
     def get_results(self):
         """Get the allocation results."""
         results = {"objective": self.solver.ObjectiveValue(),
-                   "allocation": {}}
+                   "allocations": []}
         for h in self.hospitals:
-            results["allocation"][str(h["_id"])] = []
+            allocation = {"hospital_id": str(h["_id"]), "helper_ids": []}
             for w in self.worker:
                 if self.solver.Value(self.allocation[h["_id"]][w["_id"]]) == True:
-                    results["allocation"][str(h["_id"])].append(str(w["_id"]))
+                    allocation["helper_ids"].append(str(w["_id"]))
+            results["allocations"].append(allocation)
         return results

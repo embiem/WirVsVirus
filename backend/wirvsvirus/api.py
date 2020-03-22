@@ -54,7 +54,7 @@ async def create_match(match: models.MatchBase, db: db.AsyncIOMotorDatabase = De
     return await crud.create_item('matches', match)
 
 
-@app.get('/matches/propositions')
+@app.get('/matches/propositions', response_model=models.MatchProposition)
 async def propose_matches(db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Propose matches."""
     hospitals = await crud.find("hospitals", {}, {'name': 1, 'location': 1})
@@ -67,7 +67,7 @@ async def propose_matches(db: db.AsyncIOMotorDatabase = Depends(db.get_database)
         hospitals=hospitals, worker=helpers
     )
     model.solve()
-    return model.results["allocation"]
+    return {"allocations": model.results["allocations"]}
 
 
 @app.post('/personnel_requirements', response_model=models.PersonnelRequirement)
