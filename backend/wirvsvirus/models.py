@@ -2,7 +2,7 @@
 from enum import Enum
 from typing import List, Optional, Union, Dict
 
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import BaseModel
 
 from wirvsvirus import db
 
@@ -50,7 +50,6 @@ class Profile(ProfileIntermediate):
     id: str
 
 
-
 class AddressBase(BaseModel):
     zip_code: str
     street: str
@@ -78,6 +77,11 @@ class Helper(HelperBase):
     id: str
 
 
+class Location(db.MongoModel):
+    type: str
+    coordinates: List[str]
+
+
 class HospitalBase(db.MongoModel):
     """Hospital model."""
     _id: str
@@ -88,7 +92,7 @@ class HospitalBase(db.MongoModel):
     profile_id: Optional[str] = None
     personnel_requirement_ids: List[str] = []
 
-    location: Dict[str, Union[str, List[str]]] = None
+    location: Optional[Location] = None
     healthcare_speciality: Optional[str]
 
     operator: Optional[str]
@@ -140,7 +144,7 @@ class MatchBase(db.MongoModel):
     """Match model."""
     helper_id: str
     request_id: str
-    request_status: ["Pending", "Declined", "Accepted"]
+    request_status: str
 
 
 class Match(MatchBase):
