@@ -31,28 +31,24 @@ class CapabilityEnum(str, Enum):
     medical_specialist = 'medical_specialist'
 
 
-class BaseProfile(db.MongoModel):
+class ProfileBase(db.MongoModel):
     """Basic profile with authentication info.
 
     The user_id is taken from the access token provided by our oauth provider
     (auth0).
     """
     email: str
+    profile_type: ProfileTypeEnum
+
+
+class ProfileIntermediate(ProfileBase):
+    """Profile with user id."""
     user_id: str  # provided by auth0
 
 
-class Profile(db.MongoModel):
+class Profile(ProfileIntermediate):
     id: str
-    helper_id: str = None
-    hospital_id: str = None
 
-    @property
-    def profile_type(self) -> Optional[ProfileTypeEnum]:
-        if self.helper_id:
-            return ProfileTypeEnum.hospital
-        if self.hospital_id:
-            return ProfileTypeEnum.hospital
-        return None
 
 
 class AddressBase(BaseModel):

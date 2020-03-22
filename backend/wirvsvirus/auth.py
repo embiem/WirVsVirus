@@ -76,6 +76,9 @@ class Auth(HTTPBearer):
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
         token = credentials.credentials
         payload = self.decode_jwt(token)
+        if not payload.get('sub'):
+            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail='Needs "sub"')
+        return payload
 
 
 auth = Auth()
