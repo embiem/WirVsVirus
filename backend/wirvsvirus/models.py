@@ -1,11 +1,10 @@
 
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Union, Dict
 
 from pydantic import BaseModel, EmailStr, HttpUrl
 
 from wirvsvirus import db
-
 
 
 class ProfileTypeEnum(str, Enum):
@@ -32,28 +31,25 @@ class CapabilityEnum(str, Enum):
     medical_specialist = 'medical_specialist'
 
 
-class BaseProfile(db.MongoModel):
+class ProfileBase(db.MongoModel):
     """Basic profile with authentication info.
 
     The user_id is taken from the access token provided by our oauth provider
     (auth0).
     """
     email: str
+    profile_type: ProfileTypeEnum
+
+
+class ProfileIntermediate(ProfileBase):
+    """Profile with user id."""
     user_id: str  # provided by auth0
 
 
-class Profile(db.MongoModel):
+class Profile(ProfileIntermediate):
     id: str
-    helper_id: str = None
-    hospital_id: str = None
 
-    @property
-    def profile_type(self) -> Optional[ProfileTypeEnum]:
-        if self.helper_id:
-            return ProfileTypeEnum.hospital
-        if self.hospital_id:
-            return ProfileTypeEnum.hospital
-        return None
+
 
 class AddressBase(BaseModel):
     zip_code: str
@@ -84,24 +80,58 @@ class Helper(HelperBase):
 
 class HospitalBase(db.MongoModel):
     """Hospital model."""
+    _id: str
     name: str
     address: str
     website: Optional[str]
     phone_number: Optional[str]
     profile_id: Optional[str] = None
-    helper_demand_ids: List[str] = []
+    personnel_requirement_ids: List[str] = []
+
+    location: Dict[str, Union[str, List[str]]] = None
+    healthcare_speciality: Optional[str]
+
+    operator: Optional[str]
+    operator_type: Optional[str]
+    contact_phone: Optional[str]
+    contact_website: Optional[str]
+    contact_email: Optional[str]
+    contact_fax: Optional[str]
+    addr: Optional[str]
+    address_full: Optional[str]
+    address_street: Optional[str]
+    address_housenumber: Optional[str]
+    address_city: Optional[str]
+    address_suburb: Optional[str]
+    address_subdistrict: Optional[str]
+    address_district: Optional[str]
+    address_province: Optional[str]
+    address_state: Optional[str]
+    denomination: Optional[str]
+    religion: Optional[str]
+    emergency: Optional[str]
+    rooms: Optional[str]
+    beds: Optional[str]
+    capacity: Optional[str]
+    wheelchair: Optional[str]
+    wikidata: Optional[str]
+    wikipedia: Optional[str]
+    orig_fid: Optional[str]
+    globalid: Optional[str]
+
 
 class Hospital(HospitalBase):
     id: str
 
 
-class RequestBase(db.MongoModel):
+class PersonnelRequirementBase(db.MongoModel):
     """Demand for help."""
     hospital_id: str
     activity_id: str
     value: int = 1
 
-class Request(RequestBase):
+
+class PersonnelRequirement(PersonnelRequirementBase):
     """Demand for help."""
     id: str = None
 
@@ -111,6 +141,7 @@ class MatchBase(db.MongoModel):
     helper_id: str
     request_id: str
     request_status: ["Pending", "Declined", "Accepted"]
+
 
 class Match(MatchBase):
     """Match model."""
