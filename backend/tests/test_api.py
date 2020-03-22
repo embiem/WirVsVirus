@@ -87,8 +87,33 @@ def test_nested_crud_roundtrip(test_client, db_session, mock_auth):
     assert response.status_code == 200
     personnel_requirement = models.PersonnelRequirement(**response.json())
 
+    item = models.HelperBase(first_name='foo', last_name='bar',
+                             email='bla@example.com', qualification_id='bla',
+                             work_experience_in_years=1,
+                             activity_ids=[])
+    response = test_client.post('/helpers', data=item.json())
+    assert response.status_code == 200
+    helper = models.Helper(**response.json())
+
+    item = dummy_match.copy()
+    item.personnel_requirement_id = personnel_requirement.id
+    item.helper_id = helper.id
+
+    response = test_client.post('/matches', data=item.json())
+    assert response.status_code == 200
+    match = models.Match(**response.json())
+
     query_response = test_client.post('/graphql', json={
-        'query': 'query {hospital(id: "HOSPITAL_ID") {name id personnelRequirements {id}}}'.replace('HOSPITAL_ID', hospital.id)
+        'query': '''
+        query {
+            hospital(id: "HOSPITAL_ID") {
+                id
+                name
+                personnelRequirements {id}
+                matches {id helper {id email}}
+             }
+        }
+        '''.replace('HOSPITAL_ID', hospital.id)
     })
     assert query_response.json() == {
         'data': {
@@ -97,6 +122,15 @@ def test_nested_crud_roundtrip(test_client, db_session, mock_auth):
                 'id': hospital.id,
                 'personnelRequirements': [
                     {'id': personnel_requirement.id}
+                ],
+                'matches': [
+                    {
+                        'id': match.id,
+                        'helper': {
+                            'id': helper.id,
+                            'email': helper.email
+                        }
+                    }
                 ]
             }
         }

@@ -22,13 +22,18 @@ class Location(PydanticObjectType):
 
 
 class Helper(PydanticObjectType):
+
+    matches = graphene.List(lambda: Match)
+
+    async def resolve_matches(self, info):
+        documents = await crud.find('matches', {'helper_id': str(self.id)})
+        return [models.Match(**d) for d in documents]
+
     class Meta:
         model = models.Helper
 
 
 class PersonnelRequirement(PydanticObjectType):
-
-    matches = graphene.List(lambda: Match)
 
     class Meta:
         model = models.PersonnelRequirement
@@ -42,6 +47,18 @@ class MongoDbLocation(PydanticObjectType):
 class Hospital(PydanticObjectType):
 
     personnel_requirements = graphene.List(PersonnelRequirement)
+    matches = graphene.List(lambda: Match)
+
+    async def resolve_matches(self, info):
+        """Get all matches ascociated with the hospital."""
+        pr_documents = await crud.find('personnel_requirements', {'hospital_id': str(self.id)})
+        personnel_requirements_ids = [str(d['_id']) for d in pr_documents]
+        documents = []
+        # TODO: do this with "$in" bin i'm to stupid
+        for pr_id in personnel_requirements_ids :
+            sub_documents = await crud.find('matches', {'personnel_requirement_id': pr_id})
+            documents.extend(sub_documents)
+        return [models.Match(**d) for d in documents]
 
     async def resolve_personnel_requirements(self, info):
         documents = await crud.find('personnel_requirements', {'hospital_id': str(self.id)})
@@ -53,14 +70,20 @@ class Hospital(PydanticObjectType):
 
 class Match(PydanticObjectType):
 
-    helper = Helper
-    personnel_requirement = PersonnelRequirement
+    personnel_requirement = graphene.Field(PersonnelRequirement)
+    helper = graphene.Field(Helper)
 
-    def resolve_helper(self, info):
-        document = crud.get_item('helpers', id=ObjectId(self.helper_id))
+    async def resolve_helper(self, info):
+        document = await crud.get_item('helpers', id=ObjectId(self.helper_id))
         if not document:
             raise GraphQLError('Helper does not exist.')
         return models.Helper(**document)
+
+    async def resolve_personnel_requirement(self, info):
+        document = crud.get_item('personnel_requirements', id=ObjectId(self.personnel_requirements_id))
+        if not document:
+            raise GraphQLError('Helper does not exist.')
+        return models.PersonnelRequirement(**document)
 
     class Meta:
         model = models.Match
@@ -70,7 +93,6 @@ class Query(graphene.ObjectType):
     hospital = graphene.Field(Hospital, id=graphene.ID())
     hospitals = graphene.List(Hospital)
     helper = graphene.Field(Hospital, id=graphene.ID())
-
 
     async def resolve_hospital(self, info, id):
         document = await crud.get_item('hospitals', ObjectId(id))
