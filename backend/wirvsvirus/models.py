@@ -27,6 +27,11 @@ class RoleEnum(str, Enum):
     medical = 'medical'
 
 
+class Location(db.MongoModel):
+    type: str
+    coordinates: Tuple[int, int]
+
+
 class ProfileBase(db.MongoModel):
     """Basic profile with authentication info.
 
@@ -36,15 +41,23 @@ class ProfileBase(db.MongoModel):
     email: str
     profile_type: ProfileTypeEnum
 
+class ProfileInput(ProfileBase):
+    """Model for the profile signup form.
+
+    If you are a helper, you would fill the "helper" field.
+    If your a hospital, you would fill the hospital id.
+    """
+    helper: Optional['HelperBase'] = None
+    hospital_id: Optional[str] = None
 
 class ProfileIntermediate(ProfileBase):
     """Profile with user id."""
     user_id: str  # provided by auth0
-
+    helper_id: Optional[str] = None
+    hospital_id: Optional[str] = None
 
 class Profile(ProfileIntermediate):
     id: str
-
 
 class PersonnelRequirementBase(db.MongoModel):
     """Personnel requirement for help."""
@@ -73,16 +86,6 @@ class Match(MatchBase):
     id: str
 
 
-class Location(db.MongoModel):
-    type: str
-    coordinates: Tuple[int, int]
-
-
-# class MongoDbLocation(db.MongoModel):
-#     type: str
-#     coordinates: Tuple[int, int]
-
-
 class HelperBase(db.MongoModel):
     """Define helper model."""
     first_name: str
@@ -94,7 +97,7 @@ class HelperBase(db.MongoModel):
 
     zip_code: Optional[str]
     street: Optional[str]
-    location: Optional[Location]
+    location: Optional[Location] = None
 
     # Qualifications managed in frontend and stored in db as strings.
     qualification_id: str
@@ -163,3 +166,6 @@ class Proposition(db.MongoModel):
 
 class MatchProposition(db.MongoModel):
     allocations: List[Proposition]
+
+
+ProfileInput.update_forward_refs()

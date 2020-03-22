@@ -112,4 +112,5 @@ class AuthenticatedGraphQLApp(GraphQLApp):
         await auth.auth(request)
         return await super().handle_graphql(request)
 
+
 graphql_app = AuthenticatedGraphQLApp(schema=graphene.Schema(query=Query), executor_class=AsyncioExecutor)
