@@ -125,7 +125,6 @@ class MongoDbLocation(db.MongoModel):
 
 class HospitalBase(db.MongoModel):
     """Hospital model."""
-    _id: str
     name: str
     address: str
     website: Optional[str]
