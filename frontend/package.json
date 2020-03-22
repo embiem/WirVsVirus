@@ -23,17 +23,25 @@
     "react-scripts": "3.4.0"
   },
   "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^2.1.0",
+    "autoprefixer": "^9.7.4",
+    "cssnano": "^4.1.10",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.1",
     "graphql-faker": "^2.0.0-rc.17",
-    "node-sass": "^4.13.1"
+    "node-sass": "^4.13.1",
+    "postcss-cli": "^7.1.0",
+    "tailwindcss": "^1.2.0"
   },
   "scripts": {
+    "prestart": "npm run tailwind",
     "start": "react-scripts start",
+    "prebuild": "npm run tailwind",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "prod": "yarn && yarn start",
+    "tailwind": "tailwind build ./src/styles/utils/_tailwind.css -c ./tailwind.config.js -o ./src/index.tailwind.css",
     "graphql-dev": "graphql-faker --open ./src/graphql/schema.faker.graphql"
   },
   "browserslist": {

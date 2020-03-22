@@ -6,9 +6,11 @@ import uvicorn
 
 from wirvsvirus.settings import settings
 
+
 @click.group()
 def cli():
     """Command line commands."""
+
 
 @cli.command()
 @click.option("--reload", is_flag=True, help="reload code when it changes")
@@ -26,7 +28,8 @@ def api(ctx, reload, **kwargs):
     # editing).
     if reload:
         import hupper
-        reloader = hupper.start_reloader("wirvsvirus.cli.cli", shutdown_interval=10, verbose=2)
+        reloader = hupper.start_reloader(
+            "wirvsvirus.cli.cli", shutdown_interval=10, verbose=2)
         reloader.watch_files(pathlib.Path(__file__).parent.glob("**/*.py"))
 
-    uvicorn.run(app, host=settings.host)
+    uvicorn.run(app, host=settings.host, port=settings.port)

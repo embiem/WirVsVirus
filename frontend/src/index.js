@@ -4,6 +4,7 @@ import { ApolloProvider } from '@apollo/react-hooks';
 import { navigate } from '@reach/router';
 import { ThemeProvider } from '@material-ui/core/styles';
 
+import './index.tailwind.css';
 import { Auth0Provider } from './utils/react-auth0-spa';
 import theme from './utils/muiTheme';
 import apolloClient from './graphql/apolloClient';

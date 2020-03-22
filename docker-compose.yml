@@ -12,16 +12,32 @@ services:
 
   backend:
     build:
+      dockerfile: dev.dockerfile
       context: ./backend
       args:
         extras: "[dev]"
     environment:
       WIRVSVIRUS_HOST: "0.0.0.0"
+      WIRVSVIRUS_DB_URL: "mongodb://root:pass@db:27017/default?authSource=admin"
+      WIRVSVIRUS_AUTH_ENABLED: "false"
     command: "wirvsvirus api --reload"
     volumes:
       - './backend/wirvsvirus:/home/app/code/wirvsvirus'
+      - './backend/tests:/home/app/code/tests'
     ports:
       - "8000:8000"
     # need this to enable attaching to container and interacting with debugger
     stdin_open: true
     tty: true
+    depends_on: 
+      - db
+
+  db:
+    image: mongo:3.6
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+    volumes: 
+      - './mongo:/data/db'

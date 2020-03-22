@@ -2,101 +2,39 @@
 
 from typing import List, Any
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException
-from pydantic import BaseModel, EmailStr, HttpUrl
+
+from wirvsvirus import db, models, auth, crud
+from wirvsvirus.graphql import graphql_app
 
 app = FastAPI(
     title="WirVsVirus", description="WirVsVirus!"
 )
 
-
-class RoleEnum(str, Enum):
-    """Capabailty a helper can have."""
-    admin = 'admin'
-    logistic = 'logistic'
-    medical = 'medical'
+app.add_event_handler("startup", db.connect)
+app.add_event_handler("shutdown", db.disconnect)
 
 
-class CapabilityEnum(str, Enum):
-    """Capabailty a helper can have."""
-    hotline = 'hotline'
-    testing = 'testing'
-    care_normal = 'care_normal'
-    care_intensive = 'care_intensive'
-    care_intensive_medical = 'care_intensive_medical'
-    care_intensive_medical_ventilation = 'care_intensive_medical_ventilation'
-    medical_specialist = 'medical_specialist'
-
-
-class Address(BaseModel):
-    """Adress schema."""
-    id: UUID
-    zip_code: int
-    street: str
-    latitude: float
-    longitude: float
-
-
-class Helper(BaseModel):
-    """Define helper model."""
-    id: UUID
-    name: str
-    email: EmailStr
-    address: Address
-    phone_number: str
-    capability: CapabilityEnum
-    helping_category: RoleEnum
-
-
-class Hospital(BaseModel):
-    """Hospital model."""
-    id: UUID
-    name: str
-    address: dict
-    website: Optional[HttpUrl]
-    phone_number: Optional[str]
-
-
-class HelperDemand(BaseModel):
-    """Demand for help."""
-    id: UUID
-    hospital_id: UUID
-    capability: CapabilityEnum
-    value: int = 1
-
-
-class Match(BaseModel):
-    """Match model."""
-    id: UUID
-    helper_id: UUID
-    demand_id: UUID
-    helper_confirmed: bool = False
-    hospital_confirmed: bool = False
-
-
-@app.get('/matches', response_model=Match)
-async def get_matches():
-    """Retrieve matches."""
-    pass
-
-
-@app.post('/matches')
-async def post_match(match: Match):
+@app.post('/matches', response_model=models.Match)
+async def post_match(match: models.MatchBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Post match."""
-    pass
+    return await crud.create_item('matches', match)
 
-
-@app.post('/demand')
-async def post_demand(demand: HelperDemand):
+@app.post('/demands', response_model=models.HelperDemand)
+async def post_demand(demand: models.HelperDemandBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Post new demand."""
-    pass
+    return await crud.create_item('demands', demand)
 
-
-@app.post('/helpers')
-async def post_helper(helper: Helper):
+@app.post('/helpers', response_model=models.Helper)
+async def post_helper(helper: models.HelperBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """ Post helper."""
-    pass
+    return await crud.create_item('helpers', helper)
+
+@app.post('/hospitals', response_model=models.Hospital)
+async def post_hospitals(hospital: models.HospitalBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
+    """Post match."""
+    return await crud.create_item('hospitals', hospital)
+
+app.add_route("/graphql", graphql_app)

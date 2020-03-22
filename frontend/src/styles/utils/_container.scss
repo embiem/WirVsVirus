@@ -1,0 +1,10 @@
+.center-vertical {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.py {
+  padding: 2em 0;
+}
