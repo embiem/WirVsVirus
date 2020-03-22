@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException
+from starlette.middleware.cors import CORSMiddleware
 
 from wirvsvirus import db, models, auth, crud
 from wirvsvirus.graphql import graphql_app
@@ -16,6 +17,13 @@ app = FastAPI(
 app.add_event_handler("startup", db.connect)
 app.add_event_handler("shutdown", db.disconnect)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post('/matches', response_model=models.Match)
 async def post_match(match: models.MatchBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
