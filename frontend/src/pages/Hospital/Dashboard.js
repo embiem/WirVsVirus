@@ -17,6 +17,7 @@ import Divider from '@material-ui/core/Divider';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import deLocale from 'date-fns/locale/de';
+import addDays from 'date-fns/addDays';
 import Button from '@material-ui/core/Button';
 
 import { Typography } from '@material-ui/core';
@@ -106,7 +107,7 @@ export default function Dashboard() {
   const [filterValues, setFilterValues] = useState({});
 
   const [startDate, handleStartDateChange] = useState(new Date());
-  const [endDate, handleEndDateChange] = useState(new Date());
+  const [endDate, handleEndDateChange] = useState(addDays(new Date(), 7));
 
   // Queries
   const { loading: searchLoading, data: searchData, refetch: searchRefetch } = useQuery(
