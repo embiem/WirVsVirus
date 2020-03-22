@@ -255,7 +255,9 @@ export default function Dashboard() {
                         <Entry
                           id={pr.id}
                           title={pocData.qualifications[pr.helper.qualificationId].name.de}
-                          skills={pr.helper.activities}
+                          skills={pr.helper.activityIds.map(
+                            (activityId) => pocData.activities[activityId],
+                          )}
                         ></Entry>
                       </Grid>
                     ))}
@@ -271,7 +273,9 @@ export default function Dashboard() {
                         <Entry
                           id={pr.id}
                           title={pocData.qualifications[pr.helper.qualificationId].name.de}
-                          skills={pr.helper.activities}
+                          skills={pr.helper.activityIds.map(
+                            (activityId) => pocData.activities[activityId],
+                          )}
                         ></Entry>
                       </Grid>
                     ))}
@@ -288,7 +292,9 @@ export default function Dashboard() {
                         <Entry
                           id={pr.id}
                           title={pocData.qualifications[pr.helper.qualificationId].name.de}
-                          skills={pr.helper.activities}
+                          skills={pr.helper.activityIds.map(
+                            (activityId) => pocData.activities[activityId],
+                          )}
                         ></Entry>
                       </Grid>
                     ))}
@@ -304,7 +310,9 @@ export default function Dashboard() {
                         <Entry
                           id={pr.id}
                           title={pocData.qualifications[pr.helper.qualificationId].name.de}
-                          skills={pr.helper.activities}
+                          skills={pr.helper.activityIds.map(
+                            (activityId) => pocData.activities[activityId],
+                          )}
                         ></Entry>
                       </Grid>
                     ))}
@@ -350,29 +358,25 @@ export default function Dashboard() {
                         {category.name.de}
                       </Typography>
                     </li>
-                    {category.children.map((activityId) => {
-                      console.log(activityId);
-                      if (!pocData.activities[activityId]) console.warn(activityId);
-                      return (
-                        <ListItem key={activityId}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={!!filterValues[activityId]}
-                                name={activityId}
-                                onChange={(e) => {
-                                  const targetName = e.target.name;
-                                  const targetChecked = e.target.checked;
+                    {category.children.map((activityId) => (
+                      <ListItem key={activityId}>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={!!filterValues[activityId]}
+                              name={activityId}
+                              onChange={(e) => {
+                                const targetName = e.target.name;
+                                const targetChecked = e.target.checked;
 
-                                  setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
-                                }}
-                              />
-                            }
-                            label={pocData.activities[activityId].name.de}
-                          />
-                        </ListItem>
-                      );
-                    })}
+                                setFilterValues((fv) => ({ ...fv, [targetName]: targetChecked }));
+                              }}
+                            />
+                          }
+                          label={pocData.activities[activityId].name.de}
+                        />
+                      </ListItem>
+                    ))}
                   </React.Fragment>
                 );
               })}
