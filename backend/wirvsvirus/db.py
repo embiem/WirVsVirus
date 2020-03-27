@@ -5,6 +5,7 @@ from typing import Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from bson import ObjectId
+from bson.errors import InvalidId
 from pydantic import BaseModel, root_validator
 
 from wirvsvirus.settings import settings

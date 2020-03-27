@@ -7,10 +7,10 @@ from pydantic import BaseModel
 from wirvsvirus import db
 
 
-class ProfileTypeEnum(str, Enum):
+class ProfileType(str, Enum):
     """Capabailty a helper can have."""
-    hospital = 'hospital'
-    helper = 'helper'
+    hospital = 'Hospital'
+    helper = 'Helper'
 
 
 class MatchStatus(str, Enum):
@@ -20,7 +20,7 @@ class MatchStatus(str, Enum):
     accepted = 'Accepted'
 
 
-class RoleEnum(str, Enum):
+class Role(str, Enum):
     """Capabailty a helper can have."""
     admin = 'admin'
     logistic = 'logistic'
@@ -39,7 +39,7 @@ class ProfileBase(db.MongoModel):
     (auth0).
     """
     email: str
-    profile_type: ProfileTypeEnum
+    type: ProfileType
 
 class ProfileInput(ProfileBase):
     """Model for the profile signup form.

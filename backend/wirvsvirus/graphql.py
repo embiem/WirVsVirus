@@ -108,9 +108,11 @@ router = APIRouter()
 
 
 class AuthenticatedGraphQLApp(GraphQLApp):
-    async def handle_graphql(self, request: Request):
-        await auth.auth(request)
-        return await super().handle_graphql(request)
-
+    async def execute(  # type: ignore
+        self, query, variables=None, context=None, operation_name=None
+    ):
+        request = context['request']
+        context['jwt_payload'] = await auth.auth(request)
+        return await super().execute(query=query, variables=variables, context=context, operation_name=operation_name)
 
 graphql_app = AuthenticatedGraphQLApp(schema=graphene.Schema(query=Query), executor_class=AsyncioExecutor)

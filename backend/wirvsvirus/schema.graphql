@@ -1,0 +1,154 @@
+directive @fake(type:String, locale:String) on FIELD_DEFINITION
+directive @listLength(min:Int, max:Int) on FIELD_DEFINITION
+directive @examples(values:[String]) on FIELD_DEFINITION
+
+enum MatchStatus {
+  Pending,
+  Declined,
+  Accepted
+}
+
+enum ProfileType {
+  Helper,
+  Hospital
+}
+
+type Profile {
+  id: ID
+  userId: String!  # id of authentication user
+  email: String!
+  type: ProfileType!
+  helper: Helper
+  hospital: Hospital
+}
+
+type Hospital {
+  id: ID
+  name: String! @fake(type:companyName, locale:de)
+  email: String! @fake(type:email, locale:de)
+  website: String @fake(type:url, locale:de)
+  phone: String! @fake(type:phoneNumber, locale:de)
+
+  zipCode: String @fake(type:zipCode, locale:de)
+  street: String @fake(type:streetAddress, locale:de)
+  latitude: String @fake(type:latitude, locale:de)
+  longitude: String @fake(type:longitude, locale:de)
+
+  personnelRequirements: [PersonnelRequirement] @listLength(min: 0, max: 10)
+  matches: [Match]
+}
+
+
+type Helper {
+  id: ID
+  firstName: String! @fake(type:firstName, locale:de)
+  lastName: String! @fake(type:lastName, locale:de)
+  email: String! @fake(type:email, locale:de)
+  phone: String! @fake(type:phoneNumber, locale:de)
+	vaccination: String @fake(type:productName)
+  housingSituation: String @fake(type:productName)
+
+  zipCode: String @fake(type:zipCode, locale:de)
+  street: String @fake(type:streetAddress, locale:de)
+  latitude: String @fake(type:latitude, locale:de)
+  longitude: String @fake(type:longitude, locale:de)
+
+  # Qualifications managed in frontend. IDs stored as strings in DB.
+  qualificationId: String @examples(values: ["bachelor", "master", "diplom", "1-exam", "2-exam", "aprobation"])
+  workExperienceInYears: Int @fake(type:number)
+
+  # Activities managed in frontend. IDs stored as strings in DB
+  activityIds: [String] @listLength(min: 1, max: 3) @examples(values: ["ad-a", "ad-b", "ad-c", "lo-a", "lo-b", "me-a-1", "me-a-2", "me-a-3", "me-a-4", "me-a-5", "me-a-6", "me-a-7", "me-b", "me-c"])
+  matches: [Match] @listLength(min: 0, max: 10)
+}
+
+# PersonnelRequirements should be uniquely identifiable via hospitalId & activityId
+type PersonnelRequirement {
+  id: ID
+  hospital: Hospital!
+  activityId: String! @examples(values: ["ad-a", "ad-b", "ad-c", "lo-a", "lo-b", "me-a-1", "me-a-2", "me-a-3", "me-a-4", "me-a-5", "me-a-6", "me-a-7", "me-b", "me-c"])
+  countRequired: Int! @examples(values: [0, 2, 5, 10])
+}
+
+type Match {
+  id: ID
+  helper: Helper!
+  personnelRequirement: PersonnelRequirement!
+  startDate: String!
+  endDate: String!
+  status: MatchStatus!
+  infoText: String
+}
+
+type Query {
+  # List of all available hospitals for selection
+  hospitals: [Hospital]
+
+  # Get Hospital object of the logged-in user
+  hospital: Hospital
+
+  # Get Helper object of the logged-in user
+  helper: Helper
+
+  # Get all Helpers based on the given filters
+  search(activities: [String], start: String, end: String): [Helper] @listLength(min: 2, max: 4)
+
+  # Get all matches of the logged-in user (either all matches of a hospital or helper)
+  matches: [Match] @listLength(min: 5, max: 20)
+
+  # Get all personnel requirements for the hospital of the logged-in user
+  personnelRequirements: [PersonnelRequirement] @listLength(min: 3, max: 15)
+}
+
+type Mutation {
+  # Create helper profile.
+  # The email and user is taken from the user account provided by the access token.
+  createHelperProfile(
+    activityIds: [String],
+    qualificationId: String,
+    workExperienceInYears: Int,
+    firstName: String,
+    lastName: String,
+    zipCode: String,
+    street: String,
+    phone: String,
+    vaccination:String,
+    housingSituation: String
+  ): Profile
+
+  # Create hospital profile.
+  # The email and user is taken from the user account provided by the access token.
+  createHospitalProfile(
+    hospitalId: String
+  ): Profile
+
+  updateHospitalProfile(
+    name: String,
+    email: String,
+    website: String,
+    phone: String
+  ): Hospital
+
+  updateHelperProfile(
+    activityIds: [String],
+    qualificationId: String,
+    workExperienceInYears: Int,
+    firstName: String,
+    lastName: String,
+    zipCode: String,
+    street: String,
+    phone: String,
+    vaccination:String,
+    housingSituation: String
+  ): Helper
+
+  # This will be called once a hospital clicks the "request" button on a helper
+  requestHelper(helperId: ID, personnelRequirementId: ID, infoText: String): Match
+
+  # Can be called by hospital or helper to accept/decline a request
+  updateRequest(matchId: ID, status: MatchStatus): Match
+
+  # Called by hospital to update personnel requirements for that hospital
+  # PersonnelRequirements should be uniquely identifiable via hospitalId & activityId
+  setPersonnelRequirement(activityId: String, countRequired: Int): PersonnelRequirement
+}

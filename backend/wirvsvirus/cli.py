@@ -30,6 +30,9 @@ def api(ctx, reload, **kwargs):
         import hupper
         reloader = hupper.start_reloader(
             "wirvsvirus.cli.cli", shutdown_interval=10, verbose=2)
-        reloader.watch_files(pathlib.Path(__file__).parent.glob("**/*.py"))
+        reloader.watch_files(
+            list(pathlib.Path(__file__).parent.glob("**/*.py")) +
+            list(pathlib.Path(__file__).parent.glob("**/*.graphql"))
+        )
 
     uvicorn.run(app, host=settings.host, port=settings.port)

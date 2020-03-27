@@ -11,7 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 from bson import ObjectId
 
 from wirvsvirus import db, models, auth, crud
-from wirvsvirus.graphql import graphql_app
+from wirvsvirus.graphql_ariadne import graphql_app
 from wirvsvirus.matching import MatchingModel
 
 
