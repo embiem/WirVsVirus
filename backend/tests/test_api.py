@@ -10,7 +10,7 @@ import asyncio
 from bson import ObjectId
 
 
-dummy_match = models.MatchBase(
+dummy_match = models.Match(
     helper_id=str(ObjectId()),
     personnel_requirement_id=str(ObjectId()),
     start_date=datetime.datetime.utcnow().isoformat(),
@@ -19,7 +19,7 @@ dummy_match = models.MatchBase(
     info_text="stuff",
 )
 
-dummy_helper = models.HelperBase(
+dummy_helper = models.Helper(
     first_name="foo",
     last_name="bar",
     email="bla@example.com",
@@ -28,7 +28,7 @@ dummy_helper = models.HelperBase(
     activity_ids=[],
 )
 
-dummy_hospital = models.HospitalBase(name="test", address="test")
+dummy_hospital = models.Hospital(name="test", address="test")
 
 
 def test_nonexistent_profile(test_client, db_session, mock_auth):
@@ -140,7 +140,7 @@ def test_auth(auth_token, test_client, db_session):
 
 def test_hospitals_graphql_roundtrip(test_client, db_session, mock_auth):
     """Test listing of hospitals."""
-    item = models.HospitalBase(name="test", address="test")
+    item = models.Hospital(name="test", address="test")
     response = test_client.post("/hospitals", data=item.json())
     assert response.status_code == 200
     created_id = response.json()["id"]

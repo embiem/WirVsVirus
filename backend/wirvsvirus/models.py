@@ -27,7 +27,7 @@ class Role(str, Enum):
     medical = 'medical'
 
 
-class Location(db.MongoModel):
+class Location(db.SnakeCaseModel):
     type: str
     coordinates: Tuple[int, int]
 
@@ -40,6 +40,8 @@ class ProfileBase(db.MongoModel):
     """
     email: str
     type: ProfileType
+    _collection = 'profiles'
+
 
 class ProfileInput(ProfileBase):
     """Model for the profile signup form.
@@ -47,46 +49,37 @@ class ProfileInput(ProfileBase):
     If you are a helper, you would fill the "helper" field.
     If your a hospital, you would fill the hospital id.
     """
-    helper: Optional['HelperBase'] = None
-    hospital_id: Optional[str] = None
+    helper: Optional['Helper'] = None
+    hospital_id: Optional[db.ObjectIdStr] = None
 
-class ProfileIntermediate(ProfileBase):
+
+class Profile(ProfileBase):
     """Profile with user id."""
     user_id: str  # provided by auth0
-    helper_id: Optional[str] = None
-    hospital_id: Optional[str] = None
+    helper_id: Optional[db.ObjectIdStr] = None
+    hospital_id: Optional[db.ObjectIdStr] = None
 
-class Profile(ProfileIntermediate):
-    id: str
 
-class PersonnelRequirementBase(db.MongoModel):
+class PersonnelRequirement(db.MongoModel):
     """Personnel requirement for help."""
-    hospital_id: str
+    hospital_id: db.ObjectIdStr
     activity_id: str
     value: int = 1
+    _collection = 'personnel_requirements'
 
 
-class PersonnelRequirement(PersonnelRequirementBase):
-    """Personnel requirement for help."""
-    id: str = None
-
-
-class MatchBase(db.MongoModel):
+class Match(db.MongoModel):
     """Match model."""
-    helper_id: str
-    personnel_requirement_id: str
+    helper_id: db.ObjectIdStr
+    personnel_requirement_id: db.ObjectIdStr
     start_date: str
     end_date: str
     status: str
     info_text: str
+    _collection = 'matches'
 
 
-class Match(MatchBase):
-    """Match model."""
-    id: str
-
-
-class HelperBase(db.MongoModel):
+class Helper(db.MongoModel):
     """Define helper model."""
     first_name: str
     last_name: str
@@ -106,20 +99,16 @@ class HelperBase(db.MongoModel):
     # Activities managed in frontend. IDs stored as strings in DB
     activity_ids: List[str]
 
-
-class Helper(HelperBase):
-    """Define helper model."""
-    id: str
+    _collection = 'helpers'
 
 
-class HospitalBase(db.MongoModel):
+class Hospital(db.MongoModel):
     """Hospital model."""
     name: str
     address: str
     website: Optional[str]
     phone_number: Optional[str]
-    profile_id: Optional[str] = None
-    personnel_requirement_ids: List[str] = []
+    personnel_requirement_ids: List[db.ObjectIdStr] = []
 
     location: Optional[Location] = None
     healthcare_speciality: Optional[str]
@@ -152,17 +141,15 @@ class HospitalBase(db.MongoModel):
     orig_fid: Optional[str]
     globalid: Optional[str]
 
-
-class Hospital(HospitalBase):
-    id: str
+    _collection = 'hospitals'
 
 
-class Proposition(db.MongoModel):
-    hospital_id: str
-    helper_ids: List[str]
+class Proposition(db.SnakeCaseModel):
+    hospital_id: db.ObjectIdStr
+    helper_ids: List[db.ObjectIdStr]
 
 
-class MatchProposition(db.MongoModel):
+class MatchProposition(db.SnakeCaseModel):
     allocations: List[Proposition]
 
 

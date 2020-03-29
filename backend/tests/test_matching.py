@@ -2,10 +2,10 @@
 
 from wirvsvirus.matching import MatchingModel
 from wirvsvirus.models import (
-    HelperBase,
-    HospitalBase,
+    Helper,
+    Hospital,
     Location,
-    PersonnelRequirementBase,
+    PersonnelRequirement,
 )
 
 example_problem = {
@@ -181,7 +181,7 @@ def test_propose_matching_endpoint(test_client, db_session, mock_auth):
     def fill_db():
         """Fill database with example problem data."""
         for h in example_problem["hospitals"]:
-            hospital = HospitalBase(
+            hospital = Hospital(
                 name=h["name"],
                 address="",
                 location=Location(
@@ -192,7 +192,7 @@ def test_propose_matching_endpoint(test_client, db_session, mock_auth):
             response.raise_for_status()
             hospital_id = response.json()["id"]
             for activity, value in h["demand"].items():
-                requirement = PersonnelRequirementBase(
+                requirement = PersonnelRequirement(
                     hospital_id=hospital_id, activity_id=activity, value=value
                 )
                 response = test_client.post(
@@ -200,7 +200,7 @@ def test_propose_matching_endpoint(test_client, db_session, mock_auth):
                 )
                 response.raise_for_status()
         for w in example_problem["worker"]:
-            helper = HelperBase(
+            helper = Helper(
                 first_name=w["name"].split(" ")[0],
                 last_name=w["name"].split(" ")[1],
                 email="",

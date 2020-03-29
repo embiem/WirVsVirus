@@ -82,7 +82,7 @@ async def get_current_profile(db: db.AsyncIOMotorDatabase = Depends(db.get_datab
     return profile
 
 @app.post('/matches', response_model=models.Match)
-async def create_match(match: models.MatchBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
+async def create_match(match: models.Match, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Create match."""
     return await crud.create_item('matches', match)
 
@@ -104,17 +104,17 @@ async def propose_matches(db: db.AsyncIOMotorDatabase = Depends(db.get_database)
 
 
 @app.post('/personnel_requirements', response_model=models.PersonnelRequirement)
-async def create_personnel_requirements(personnel_requirement: models.PersonnelRequirementBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
+async def create_personnel_requirements(personnel_requirement: models.PersonnelRequirement, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Create new personnel requirement."""
     return await crud.create_item('personnel_requirements', personnel_requirement)
 
 @app.post('/helpers', response_model=models.Helper)
-async def create_helper(helper: models.HelperBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
+async def create_helper(helper: models.Helper, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Create helper."""
     return await crud.create_item('helpers', helper)
 
 @app.post('/hospitals', response_model=models.Hospital)
-async def create_hospital(hospital: models.HospitalBase, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
+async def create_hospital(hospital: models.Hospital, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Post match."""
     return await crud.create_item('hospitals', hospital)
 

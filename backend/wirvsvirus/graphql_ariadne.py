@@ -1,6 +1,6 @@
 import inspect
 import asyncio
-from typing import Type, Dict, List
+from typing import Type, Dict, List, Union
 from pathlib import Path
 
 from ariadne import gql, load_schema_from_path, snake_case_fallback_resolvers
@@ -8,6 +8,7 @@ from ariadne.asgi import GraphQL, Request
 from ariadne.types import Extension
 from ariadne import ObjectType, QueryType, make_executable_schema
 from pydantic import BaseModel
+from starlette.exceptions import HTTPException
 
 from wirvsvirus import db, models, crud, auth
 from bson import ObjectId
@@ -63,17 +64,16 @@ async def resolve_hospital(_, info):
 
 
 @query.field("hospitals")
-async def resolve_all_hospitals(_, info):
-    documents = await crud.find('hospitals', {})
-    return [models.Hospital(**d) for d in documents]
-
+async def resolve_all_hospitals(_, info) -> List[models.Hospital]:
+    result = await models.Hospital.find({})
+    return result
 
 @query.field("helper")
 async def resolve_helper(_, info):
     profile: models.Profile = await info.context['auth'].get_profile()
     if not profile.type == models.ProfileType.helper:
         raise ValueError(f"User with doesn't have a helper profile")
-    result = await _resolve_by_id(profile.helper_id, models.Helper)
+    result = await models.Helper.get_by_id(profile.helper_id)
     return result
 
 
@@ -81,43 +81,41 @@ async def resolve_helper(_, info):
 
 @profile.field('helper')
 @match.field('helper')
-async def resolve_child_helper(obj, info):
+async def resolve_child_helper(obj: Union[models.Profile, models.Match], info) -> models.Helper:
     result = await _resolve_by_id(obj.helper_id, models.Helper)
     return result
 
 @helper.field('matches')
-async def resolve_helper_matches(obj, info):
-    documents = await crud.find('matches', {'helper_id': str(obj.id)})
-    return [models.Match(**d) for d in documents]
+async def resolve_helper_matches(obj: models.Helper, info) -> List[models.Match]:
+    result = await models.Match.find({'helper_id': obj.id})
+    return result
 
 
 @profile.field('hospital')
 @personnel_requirement.field('hospital')
-async def resolve_child_hospital(obj, info):
+async def resolve_child_hospital(obj: Union[models.Profile, models.PersonnelRequirement], info) -> models.Hospital:
     return await _resolve_by_id(obj.hospital_id, models.Hospital)
 
 
 @hospital.field('matches')
-async def resolve_hospital_matches(obj, info):
-    pr_documents = await crud.find('personnel_requirements', {'hospital_id': str(obj.id)})
-    personnel_requirements_ids = [str(d['_id']) for d in pr_documents]
-    documents = []
+async def resolve_hospital_matches(obj, info) -> List[models.Match]:
+    personnel_requirements = await models.PersonnelRequirement.find({'hospital_id': obj.id})
+    matches: List[models.Match] = []
     # TODO: do this with "$in" bin i'm to stupid
-    for pr_id in personnel_requirements_ids:
-        sub_documents = await crud.find('matches', {'personnel_requirement_id': pr_id})
-        documents.extend(sub_documents)
-    return [models.Match(**d) for d in documents]
+    for personnel_requirement in personnel_requirements:
+        sub_matches = await models.Match.find({'personnel_requirement_id': personnel_requirement.id})
+        matches.extend(sub_matches)
+    return matches
 
 
 @hospital.field('personnelRequirements')
-async def resolve_hosital_personnel_requirements(obj, info):
-    documents = await crud.find('personnel_requirements', {'hospital_id': str(obj.id)})
-    return [models.PersonnelRequirement(**d) for d in documents]
+async def resolve_hosital_personnel_requirements(obj: models.Hospital, info) -> List[models.PersonnelRequirement]:
+    return await models.PersonnelRequirement.find({'hospital_id': obj.id})
 
 
 @match.field('personnelRequirement')
-async def resolve_child_personnel_requirements(obj, info):
-    return await _resolve_by_id(ObjectId(obj.personnel_requirement_id), models.PersonnelRequirement)
+async def resolve_child_personnel_requirements(obj: models.Match, info) -> models.PersonnelRequirement:
+    return await models.PersonnelRequirement.get_by_id(obj.personnel_requirement_id)
 
 
 async def _resolve_by_id(id: str, model_cls: Type[BaseModel]):
@@ -132,6 +130,9 @@ async def _resolve_by_id(id: str, model_cls: Type[BaseModel]):
     return model_cls(**document)
 
 
+# Mutations
+
+
 class GraphQLAuth:
     def __init__(self, request: Request):
         self.request = request
@@ -139,8 +140,11 @@ class GraphQLAuth:
         self._profile: models.Profile = None
 
     async def get_jwt_payload(self) -> auth.JWTPayload:
-        if not self._jwt_payload:
-            self._jwt_payload = await auth.auth(self.request)
+        try:
+            if not self._jwt_payload:
+                self._jwt_payload = await auth.auth(self.request)
+        except HTTPException as e:
+            raise ValueError(f'Authentication failed: {e.detail}')
         return self._jwt_payload
 
     async def get_profile(self) -> models.Profile:
@@ -148,16 +152,16 @@ class GraphQLAuth:
             return self._profile
         jwt_payload = await self.get_jwt_payload()
         user_id = jwt_payload.sub
-        result = await db.get_database().profiles.find_one({'user_id': user_id})
+        result = await models.Profile.get_collection().find_one({'user_id': user_id})
         if not result:
             raise ValueError(f'No profile found for user {user_id}')
-        self._profile = models.Profile(**result)
+        self._profile = models.Profile.parse_obj(result)
         return self._profile
 
 
 async def auth_middleware(resolver, obj, info, *args, **kwargs):
     auth_context = info.context.get('auth')
-    if not auth_context:
+    if not auth_context and not info.path.as_list()[0] == '__schema':
         graphql_auth = GraphQLAuth(info.context['request'])
         await graphql_auth.get_jwt_payload()
         info.context['auth'] = graphql_auth
@@ -172,6 +176,6 @@ async def auth_middleware(resolver, obj, info, *args, **kwargs):
 
 
 schema = make_executable_schema(
-    type_defs, query, profile, hospital, helper, match, personnel_requirement, 
+    type_defs, query, profile, hospital, helper, match, personnel_requirement,
     snake_case_fallback_resolvers)
 graphql_app = GraphQL(schema, middleware=[auth_middleware])
