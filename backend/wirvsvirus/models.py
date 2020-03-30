@@ -93,11 +93,11 @@ class Helper(db.MongoModel):
     location: Optional[Location] = None
 
     # Qualifications managed in frontend and stored in db as strings.
-    qualification_id: str
-    work_experience_in_years: int
+    qualification_id: Optional[str]
+    work_experience_in_years: int = 0
 
     # Activities managed in frontend. IDs stored as strings in DB
-    activity_ids: List[str]
+    activity_ids: List[str] = []
 
     _collection = 'helpers'
 

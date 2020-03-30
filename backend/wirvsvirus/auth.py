@@ -29,20 +29,21 @@ class JWTAuthorizationCredentials(BaseModel):
     signature: str
     message: str
 
+
 class JWTPayload(BaseModel):
     iss: str
     sub: str
     aud: List[str] = []
     iat: int
     exp: int
-    azp: str = ''
-    scope: str = ''
-    token: str = ''  # original jwt token
+    azp: str = ""
+    scope: str = ""
+    token: str = ""  # original jwt token
 
     @property
     def scopes(self) -> List[str]:
         """Scopes as list."""
-        [s.strip() for s in scope.split(' ')]
+        [s.strip() for s in self.scope.split(" ")]
 
 
 @functools.lru_cache()
@@ -77,7 +78,11 @@ class Auth(HTTPBearer):
     def decode_jwt(self, token: str) -> JWTClaims:
         """Verify jwt."""
         try:
-            payload = jwt.decode(token, self.jwks.keys, claims_options={"iss": {"value": settings.auth_issuer}})
+            payload = jwt.decode(
+                token,
+                self.jwks.keys,
+                claims_options={"iss": {"value": settings.auth_issuer}},
+            )
             payload.validate()
         except JoseError as e:
             breakpoint()
@@ -85,9 +90,9 @@ class Auth(HTTPBearer):
 
         return payload
 
-    async def __call__(self, request: Request) -> JWTPayload:
+    async def __call__(self, request: Request) -> JWTPayload:  # type: ignore
         if not settings.auth_enabled:
-            return JWTPayload(sub='noone', iss='noone', iat=0, exp=0)
+            return JWTPayload(sub="noone", iss="noone", iat=0, exp=0)
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
         token = credentials.credentials
         payload = self.decode_jwt(token)
@@ -95,8 +100,35 @@ class Auth(HTTPBearer):
             return JWTPayload(**payload, token=token)
         except ValidationError as e:
             breakpoint()
-            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail=f'Invalid jwt: {e.args[0]}')
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED, detail=f"Invalid jwt: {e.args[0]}"
+            )
 
+
+class UserInfo(BaseModel):
+    """User info model based on auth0 userinfo response.
+
+    See: https://auth0.com/docs/api/authentication?http#get-user-info
+    """
+
+    sub: str
+    email: str
+    email_verified: bool = False
+    phone_number: Optional[str]
+    locale: Optional[str]
+    name: Optional[str]
+    given_name: Optional[str]
+    family_name: Optional[str]
+    middle_name: Optional[str]
+
+
+async def get_user_info(token: str):
+    """Obtain userinfo from auth0 given an access token."""
+    response = requests.get(
+        settings.auth_issuer + "userinfo", headers={"Authorization": f"Bearer {token}"}
+    )
+    user_info = UserInfo.parse_obj(response.json())
+    return user_info
 
 
 auth = Auth()

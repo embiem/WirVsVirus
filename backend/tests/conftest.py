@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 from wirvsvirus import models, crud
-from wirvsvirus.auth import JWTPayload
+from wirvsvirus.auth import JWTPayload, UserInfo
 from wirvsvirus.settings import settings
 from bson import ObjectId
 
@@ -75,8 +75,8 @@ def auth_token():
 
 @pytest.fixture
 def mock_auth(mocker):
-    mock_jwt_payload = JWTPayload(
-        **{
+    mock_jwt_payload = JWTPayload.parse_obj(
+        {
             "iss": settings.auth_issuer,
             "sub": "google-oauth2|100000000000000000000",
             "aud": ["wirvsvirus-healthkeeper-api", f"{settings.auth_issuer}userinfo"],
@@ -87,6 +87,11 @@ def mock_auth(mocker):
         }
     )
     mocker.patch("wirvsvirus.auth.Auth.__call__").return_value = mock_jwt_payload
+    mocker.patch("wirvsvirus.auth.get_user_info").return_value = UserInfo(
+        sub="google-oauth2|100000000000000000000",
+        email="me@example.com",
+        email_verified=True
+    )
     return mock_jwt_payload
 
 
@@ -105,7 +110,7 @@ def mock_data(db_session):
     helper = models.Helper(
         first_name="foo",
         last_name="bar",
-        email="bla@example.com",
+        email="me@example.com",
         qualification_id="bla",
         work_experience_in_years=1,
         activity_ids=[],

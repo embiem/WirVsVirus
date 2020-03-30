@@ -107,52 +107,139 @@ def test_create_match(test_client, db_session, mock_auth):
     assert response.status_code == 200
 
 
-def test_simple_hospital_crud_roundtrip(test_client, db_session, mock_auth):
-    """Test that creating and querying hospitals works."""
-    response = test_client.post("/hospitals", data=dummy_hospital.json())
-    assert response.status_code == 200
-    created_id = response.json()["id"]
-    query_response = test_client.post(
-        "/graphql",
-        json={
-            "query": 'query {hospital(id: "HOSPITAL_ID") {name id}}'.replace(
-                "HOSPITAL_ID", created_id
-            )
-        },
-    )
-    assert query_response.json() == {
-        "data": {"hospital": {"name": "test", "id": created_id}}
-    }
-
-
 def test_auth(auth_token, test_client, db_session):
     """Test authentication validation.
 
     Skipped if authentication token is missing.
     """
-    m = test_client.post(
-        "/matches",
-        data=dummy_match.json(),
-        headers={"Authorization": f"Bearer {auth_token}"},
-    )
-    assert m.status_code == 200
-
-
-def test_hospitals_graphql_roundtrip(test_client, db_session, mock_auth):
-    """Test listing of hospitals."""
-    item = models.Hospital(name="test", address="test")
-    response = test_client.post("/hospitals", data=item.json())
-    assert response.status_code == 200
-    created_id = response.json()["id"]
     query_response = test_client.post(
         "/graphql",
         json={
-            "query": "query {hospitals {name id}}".replace("HOSPITAL_ID", created_id)
+            "query": "query {hospitals {name id}}"
+        },
+    )
+    assert query_response.status_code == 200
+
+
+def test_hospitals_query(test_client, db_session, mock_auth, mock_data):
+    """Test listing of hospitals."""
+    query_response = test_client.post(
+        "/graphql",
+        json={
+            "query": "query {hospitals {name id}}"
         },
     )
     assert query_response.json() == {
-        "data": {"hospitals": [{"name": "test", "id": created_id}]}
+        "data": {"hospitals": [{"name": mock_data['hospitals'][0].name, "id": mock_data['hospitals'][0].id}]}
     }
+
+
+def test_create_helper_profile(test_client, db_session, mock_auth):
+    query_response = test_client.post(
+        "/graphql",
+        json={
+            "query": """
+        mutation {
+            createHelperProfile (firstName: "foo", lastName: "bar") {
+                userId
+                type
+                helper {
+                    email
+                }
+            }
+        }
+        """
+        },
+    )
+    actual = query_response.json()
+    expected = {
+        "data": {
+            "createHelperProfile": {
+                "userId": mock_auth.sub,
+                "type": "Helper",
+                "helper": {"email": "me@example.com"},
+            }
+        }
+    }
+    assert actual == expected
+
+
+def test_create_hospital_profile(test_client, db_session, mock_auth, mock_data):
+    query_response = test_client.post(
+        "/graphql",
+        json={
+            "query": """
+        mutation {
+            createHospitalProfile (hospitalId: "__HOSPITAL_ID__") {
+                userId
+                type
+                hospital {
+                    name
+                }
+            }
+        }
+        """.replace("__HOSPITAL_ID__", mock_data['hospitals'][0].id)
+        },
+    )
+    actual = query_response.json()
+    expected = {
+        "data": {
+            "createHospitalProfile": {
+                "userId": mock_auth.sub,
+                "type": "Hospital",
+                "hospital": {"name": mock_data['hospitals'][0].name},
+            }
+        }
+    }
+    assert actual == expected
+
+
+def test_update_helper(test_client, db_session, mock_auth, mock_data, mock_helper_profile):
+    query_response = test_client.post(
+        "/graphql",
+        json={
+            "query": """
+        mutation {
+            updateHelper (firstName: "new foo") {
+                firstName
+                lastName
+            }
+        }
+        """
+        },
+    )
+    actual = query_response.json()
+    expected = {
+        "data": {
+            "updateHelper": {'firstName': 'new foo', "lastName": "bar"}
+        }
+    }
+    assert actual == expected
+
+
+def test_update_hospital(test_client, db_session, mock_auth, mock_data, mock_hospital_profile):
+    query_response = test_client.post(
+        "/graphql",
+        json={
+            "query": """
+        mutation {
+            updateHospital (name: "new name") {
+                id
+                name
+            }
+        }
+        """
+        },
+    )
+    actual = query_response.json()
+    expected = {
+        "data": {
+            "updateHospital":
+                {"id": mock_data['hospitals'][0].id, "name": "new name"},
+
+        }
+    }
+    assert actual == expected
 
 
 def test_nested_hospital_query(
@@ -233,5 +320,3 @@ def test_nested_helper_query(
         }
     }
     assert actual == expected
-
-

@@ -101,10 +101,10 @@ class MongoModel(SnakeCaseModel, Generic[T]):
         self.id = id_field.type_(result.inserted_id)
         return result
 
-    async def update(self):
+    async def update(self) -> None:
         db_dict = self.db_dict()
         id = db_dict.pop('_id')
-        await self.get_collection().find_one_and_update(
+        document = await self.get_collection().find_one_and_update(
             {'_id': id}, {'$set': db_dict})
 
     @classmethod

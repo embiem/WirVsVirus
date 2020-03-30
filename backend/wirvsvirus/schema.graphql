@@ -44,7 +44,7 @@ type Helper {
   firstName: String! @fake(type:firstName, locale:de)
   lastName: String! @fake(type:lastName, locale:de)
   email: String! @fake(type:email, locale:de)
-  phone: String! @fake(type:phoneNumber, locale:de)
+  phone: String @fake(type:phoneNumber, locale:de)
 	vaccination: String @fake(type:productName)
   housingSituation: String @fake(type:productName)
 
@@ -122,14 +122,13 @@ type Mutation {
     hospitalId: String
   ): Profile
 
-  updateHospitalProfile(
+  updateHospital(
     name: String,
-    email: String,
     website: String,
     phone: String
   ): Hospital
 
-  updateHelperProfile(
+  updateHelper(
     activityIds: [String],
     qualificationId: String,
     workExperienceInYears: Int,
