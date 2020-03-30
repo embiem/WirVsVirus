@@ -30,63 +30,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post('/profile', response_model=models.Profile)
-async def post_profile(profile: models.ProfileInput, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
-    """Create your profile.
-
-    This creates the currently authenticated users profile.
-    After authenticating, we need to first create this profile before further actions can be taken.
-
-    Note that the fields "helper" and "hospital_id" must be filled depending on
-    the setting of "profileType":
-
-    * If profileType is set to "helper", the "helper" object MUST be also
-      supplied. This object will be used to create a "helper" object.
-    * If profileType is set to "hospital", the "hospitalId" field MUST be
-      supplied and the corresponding hospital must exist.
-
-    WARNING: Once a profile is created it cannot be changed.
-
-    """
-    intermediate_profile = models.ProfileIntermediate(**profile.dict(), user_id=jwt_payload['sub'])
-    db_profile = await db.profiles.find_one({'user_id': intermediate_profile.user_id})
-    if db_profile:
-        raise HTTPException(409, detail='profile already exists!')
-
-    if profile.profile_type == models.ProfileTypeEnum.helper:
-        if not profile.helper:
-            raise HTTPException(400, "Missing helper definition for helper user profile.")
-        document = await crud.create_item('helpers', profile.helper)
-        helper = models.Helper(**document)
-        intermediate_profile.helper_id = helper.id
-        intermediate_profile.hospital_id = None
-    elif profile.profile_type == models.ProfileTypeEnum.hospital:
-        if not profile.hospital_id:
-            raise HTTPException(400, "Missing hospital id for hospital user profile.")
-        document = await crud.get_item('hospitals', ObjectId(intermediate_profile.hospital_id))
-        if not document:
-            raise HTTPException(404, 'Given hospital_id does not exist.')
-        intermediate_profile.helper_id = None
-    else:
-        raise NotImplementedError('profile type not implemented')
-
-    # When everything else is done, finally create the profile
-    return await crud.create_item('profiles', intermediate_profile)
-
-@app.get('/profile', response_model=models.Profile)
-async def get_current_profile(db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
-    """Get current users profile"""
-    profile = await db.profiles.find_one({'user_id': jwt_payload['sub']})
-    if not profile:
-        raise HTTPException(404, detail='No profile found')
-    return profile
-
-@app.post('/matches', response_model=models.Match)
-async def create_match(match: models.Match, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
-    """Create match."""
-    return await crud.create_item('matches', match)
-
-
 @app.get('/matches/propositions', response_model=models.MatchProposition)
 async def propose_matches(db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
     """Propose matches."""
@@ -101,22 +44,6 @@ async def propose_matches(db: db.AsyncIOMotorDatabase = Depends(db.get_database)
     )
     model.solve()
     return {"allocations": model.results["allocations"]}
-
-
-@app.post('/personnel_requirements', response_model=models.PersonnelRequirement)
-async def create_personnel_requirements(personnel_requirement: models.PersonnelRequirement, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
-    """Create new personnel requirement."""
-    return await crud.create_item('personnel_requirements', personnel_requirement)
-
-@app.post('/helpers', response_model=models.Helper)
-async def create_helper(helper: models.Helper, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
-    """Create helper."""
-    return await crud.create_item('helpers', helper)
-
-@app.post('/hospitals', response_model=models.Hospital)
-async def create_hospital(hospital: models.Hospital, db: db.AsyncIOMotorDatabase = Depends(db.get_database), jwt_payload: dict = Depends(auth.auth)):
-    """Post match."""
-    return await crud.create_item('hospitals', hospital)
 
 
 # TODO: correct the response_model

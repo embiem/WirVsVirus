@@ -1,5 +1,5 @@
 """Test matching algorithm."""
-
+import asyncio
 from wirvsvirus.matching import MatchingModel
 from wirvsvirus.models import (
     Helper,
@@ -7,6 +7,14 @@ from wirvsvirus.models import (
     Location,
     PersonnelRequirement,
 )
+
+
+def run_sync(coroutine):
+    """Run async function call synchronously without the need for await."""
+    loop = asyncio.get_event_loop()
+    result = loop.run_until_complete(coroutine)
+    return result
+
 
 example_problem = {
     "hospitals": [
@@ -188,17 +196,13 @@ def test_propose_matching_endpoint(test_client, db_session, mock_auth):
                     type="Point", coordinates=(h["latitude"], h["longitude"])
                 ),
             )
-            response = test_client.post("/hospitals", data=hospital.json())
-            response.raise_for_status()
-            hospital_id = response.json()["id"]
+            run_sync(hospital.create())
+            hospital_id = hospital.id
             for activity, value in h["demand"].items():
                 requirement = PersonnelRequirement(
                     hospital_id=hospital_id, activity_id=activity, count_required=value
                 )
-                response = test_client.post(
-                    "/personnel_requirements", data=requirement.json()
-                )
-                response.raise_for_status()
+                run_sync(requirement.create())
         for w in example_problem["worker"]:
             helper = Helper(
                 first_name=w["name"].split(" ")[0],
@@ -212,8 +216,7 @@ def test_propose_matching_endpoint(test_client, db_session, mock_auth):
                 work_experience_in_years=1,
                 activity_ids=w["activity_ids"],
             )
-            response = test_client.post("/helpers", data=helper.json())
-            response.raise_for_status()
+            run_sync(helper.create())
 
     fill_db()
     response = test_client.get("/matches/propositions")

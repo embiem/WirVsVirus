@@ -47,6 +47,7 @@ def test_hospitals_query(test_client, db_session, mock_auth, mock_data):
 
 
 def test_create_helper_profile(test_client, db_session, mock_auth):
+    """Create a profile of type helper."""
     query_response = test_client.post(
         "/graphql",
         json={
@@ -77,6 +78,7 @@ def test_create_helper_profile(test_client, db_session, mock_auth):
 
 
 def test_create_hospital_profile(test_client, db_session, mock_auth, mock_data):
+    """Create a profile of type hospital"""
     query_response = test_client.post(
         "/graphql",
         json={
@@ -111,6 +113,7 @@ def test_create_hospital_profile(test_client, db_session, mock_auth, mock_data):
 def test_update_helper(
     test_client, db_session, mock_auth, mock_data, mock_helper_profile
 ):
+    """Test that a helper user can update it's helpers info."""
     query_response = test_client.post(
         "/graphql",
         json={
@@ -132,6 +135,7 @@ def test_update_helper(
 def test_update_hospital(
     test_client, db_session, mock_auth, mock_data, mock_hospital_profile
 ):
+    """Check that a hospital user can update their hospital."""
     query_response = test_client.post(
         "/graphql",
         json={
@@ -157,6 +161,7 @@ def test_update_hospital(
 def test_nested_hospital_query(
     test_client, db_session, mock_auth, mock_data, mock_hospital_profile
 ):
+    """Check that a hospital can be queried."""
     query_response = test_client.post(
         "/graphql",
         json={
@@ -199,6 +204,7 @@ def test_nested_hospital_query(
 def test_nested_helper_query(
     test_client, db_session, mock_auth, mock_data, mock_helper_profile
 ):
+    """Check that a helper can be queried."""
     query_response = test_client.post(
         "/graphql",
         json={
@@ -274,9 +280,11 @@ def test_update_request(test_client, db_session, mock_data, mock_helper_profile)
         json={
             "query": """
         mutation {
-            requestHelper(matchId: "__MATCH_ID__", infoText: "blabla") {
+            updateRequest(matchId: "__MATCH_ID__", status: Accepted) {
                 id
+                status
                 helper { firstName }
+                personnelRequirement { id }
              }
         }
         """.replace(
@@ -287,11 +295,13 @@ def test_update_request(test_client, db_session, mock_data, mock_helper_profile)
     actual = query_response.json()
     expected = {
         "data": {
-            "requestHelper": {
+            "updateRequest": {
+                "id": mock_data["matches"][0].id,
+                "status": "Accepted",
                 "personnelRequirement": {
                     "id": mock_data["personnel_requirements"][0].id
                 },
-                "helper": {"name": mock_data["helpers"][0].first_name},
+                "helper": {"firstName": mock_data["helpers"][0].first_name},
             }
         }
     }

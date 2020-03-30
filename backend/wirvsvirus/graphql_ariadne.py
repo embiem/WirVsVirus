@@ -237,7 +237,7 @@ async def resolve_request_helper(obj, info, **kwargs) -> models.Match:
 
 @mutation.field("updateRequest")
 @convert_kwargs_to_snake_case
-async def resolve_update_match(obj, info, match_id: str, status: str) -> models.Match:
+async def resolve_update_request(obj, info, match_id: str, status: str) -> models.Match:
     """Request a specific helper to fullfill a personnel requirement."""
     profile: models.Profile = await info.context[
         "auth"
@@ -246,7 +246,7 @@ async def resolve_update_match(obj, info, match_id: str, status: str) -> models.
     if match is None:
         raise ValueError("Match does not exist.")
 
-    match_status = models.MatchStatus[status]
+    match_status = models.MatchStatus(status)
 
     if profile.type == models.ProfileType.helper:
         if match.helper_id != profile.helper_id:
@@ -291,7 +291,7 @@ async def resolve_set_personnel_requirement(
     if count_required < 0:
         raise ValueError("Count required must be >=0")
 
-    personnel_requirements = models.PersonnelRequirement.find(
+    personnel_requirements = await models.PersonnelRequirement.find(
         {"hospital_id": profile.hospital_id, "activityId": activity_id}
     )
     if personnel_requirements:
