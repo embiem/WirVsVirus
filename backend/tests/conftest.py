@@ -18,7 +18,6 @@ def dummy_match():
         personnel_requirement_id=str(ObjectId()),
         start_date=datetime.datetime.utcnow().isoformat(),
         end_date=datetime.datetime.utcnow().isoformat(),
-        status="test",
         info_text="stuff",
     )
 
@@ -127,7 +126,6 @@ def mock_data(db_session):
         personnel_requirement_id=personnel_requirement.id,
         start_date=datetime.datetime.utcnow().isoformat(),
         end_date=datetime.datetime.utcnow().isoformat(),
-        status="test",
         info_text="stuff",
     )
     run_sync(match.create())

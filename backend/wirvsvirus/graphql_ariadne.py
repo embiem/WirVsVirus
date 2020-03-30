@@ -142,7 +142,7 @@ async def resolve_child_personnel_requirements(
 
 @mutation.field("createHelperProfile")
 @convert_kwargs_to_snake_case
-async def resolve_helper_creation(obj, info, **kwargs) -> models.Profile:
+async def resolve_helper_profile_creation(obj, info, **kwargs) -> models.Profile:
     jwt_payload = await info.context["auth"].get_jwt_payload()
     user_info: auth.UserInfo = await info.context["auth"].get_user_info()
     existing_profiles = await models.Profile.find({"user_id": jwt_payload.sub})
@@ -165,7 +165,7 @@ async def resolve_helper_creation(obj, info, **kwargs) -> models.Profile:
 
 @mutation.field("createHospitalProfile")
 @convert_kwargs_to_snake_case
-async def resolve_hospital_creation(obj, info, hospital_id: str) -> models.Profile:
+async def resolve_hospital_profile_creation(obj, info, hospital_id: str) -> models.Profile:
     jwt_payload = await info.context["auth"].get_jwt_payload()
     user_info: auth.UserInfo = await info.context["auth"].get_user_info()
     existing_profiles = await models.Profile.find({"user_id": jwt_payload.sub})
@@ -188,15 +188,17 @@ async def resolve_hospital_creation(obj, info, hospital_id: str) -> models.Profi
 
 @mutation.field("updateHospital")
 @convert_kwargs_to_snake_case
-async def resolve_update_hospital(obj, info, **kwargs) -> models.Profile:
+async def resolve_update_hospital(obj, info, **kwargs) -> models.Hospital:
     """Update the current users hospital."""
     profile: models.Profile = await info.context["auth"].get_profile()
     if profile.type != models.ProfileType.hospital:
-        raise ValueError('Can only update hospitals for users with hospital profiles.')
+        raise ValueError("Can only update hospitals for users with hospital profiles.")
 
     hospital = await models.Hospital.get_by_id(profile.hospital_id)
     if not hospital:
-        raise ValueError(f'Couldn\'t find profiles hospital with id {profile.hospital_id}')
+        raise ValueError(
+            f"Couldn't find profiles hospital with id {profile.hospital_id}"
+        )
     # update the hospital with the given keyword arguments
     hospital = models.Hospital.parse_obj(hospital.copy(update=kwargs))
     await hospital.update()  # write to db
@@ -205,19 +207,105 @@ async def resolve_update_hospital(obj, info, **kwargs) -> models.Profile:
 
 @mutation.field("updateHelper")
 @convert_kwargs_to_snake_case
-async def resolve_update_helper(obj, info, **kwargs) -> models.Profile:
+async def resolve_update_helper(obj, info, **kwargs) -> models.Helper:
     """Update the current users helper."""
     profile: models.Profile = await info.context["auth"].get_profile()
     if profile.type != models.ProfileType.helper:
-        raise ValueError('Can only update helper for users with helper profiles.')
+        raise ValueError("Can only update helper for users with helper profiles.")
 
     helper = await models.Helper.get_by_id(profile.helper_id)
     if not helper:
-        raise ValueError(f'Couldn\'t find profiles helper with id {profile.helper_id}')
+        raise ValueError(f"Couldn't find profiles helper with id {profile.helper_id}")
     # update the helper with the given keyword arguments
     helper = models.Helper.parse_obj(helper.copy(update=kwargs))
     await helper.update()  # write to db
     return helper
+
+
+@mutation.field("requestHelper")
+@convert_kwargs_to_snake_case
+async def resolve_request_helper(obj, info, **kwargs) -> models.Match:
+    """Request a specific helper to fullfill a personnel requirement."""
+    profile: models.Profile = await info.context["auth"].get_profile()
+    if profile.type != models.ProfileType.hospital:
+        raise ValueError("Can only request helper for users with hospital profiles.")
+
+    new_match = models.Match(**kwargs)
+    await new_match.create()
+    return new_match
+
+
+@mutation.field("updateRequest")
+@convert_kwargs_to_snake_case
+async def resolve_update_match(obj, info, match_id: str, status: str) -> models.Match:
+    """Request a specific helper to fullfill a personnel requirement."""
+    profile: models.Profile = await info.context[
+        "auth"
+    ].get_profile()  # user must have profile
+    match = await models.Match.get_by_id(db.ObjectIdStr(match_id))
+    if match is None:
+        raise ValueError("Match does not exist.")
+
+    match_status = models.MatchStatus[status]
+
+    if profile.type == models.ProfileType.helper:
+        if match.helper_id != profile.helper_id:
+            raise ValueError("This is not your match.  Please don't touch it!")
+    elif profile.type == models.ProfileType.hospital:
+        personnel_requirement = models.PersonnelRequirement.get_by_id(
+            match.personnel_requirement_id
+        )
+        if (
+            not personnel_requirement
+            or personnel_requirement.hospital_id != profile.hospital_id
+        ):
+            raise ValueError(
+                "Personnel requirement does not exist or does not belong to your hospital."
+            )
+        if match_status == models.MatchStatus.accepted:
+            raise ValueError("Only helpers can accept matches!")
+    else:
+        raise ValueError("Invalid profile type.")
+
+    match.status = match_status
+    await match.update()
+    return match
+
+
+@mutation.field("setPersonnelRequirement")
+@convert_kwargs_to_snake_case
+async def resolve_set_personnel_requirement(
+    obj, info, activity_id: str, count_required: int
+) -> models.PersonnelRequirement:
+    """Request a specific helper to fullfill a personnel requirement."""
+    profile: models.Profile = await info.context[
+        "auth"
+    ].get_profile()  # user must have profile
+    if profile.type != models.ProfileType.hospital:
+        raise ValueError("Can set personnel requirements with hospital profile.")
+
+    try:
+        count_required = int(count_required)
+    except (ValueError, TypeError):
+        raise TypeError("Must provide valid integer for count required.")
+    if count_required < 0:
+        raise ValueError("Count required must be >=0")
+
+    personnel_requirements = models.PersonnelRequirement.find(
+        {"hospital_id": profile.hospital_id, "activityId": activity_id}
+    )
+    if personnel_requirements:
+        personnel_requirement = personnel_requirements[0]
+        personnel_requirement.value = count_required
+        await personnel_requirement.update()
+    else:
+        personnel_requirement = models.PersonnelRequirement(
+            hospital_id=profile.hospital_id,
+            activity_id=activity_id,
+            count_required=count_required,
+        )
+        await personnel_requirement.create()
+    return personnel_requirement
 
 
 class GraphQLAuth:

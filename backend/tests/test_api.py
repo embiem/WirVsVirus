@@ -10,27 +10,6 @@ import asyncio
 from bson import ObjectId
 
 
-dummy_match = models.Match(
-    helper_id=str(ObjectId()),
-    personnel_requirement_id=str(ObjectId()),
-    start_date=datetime.datetime.utcnow().isoformat(),
-    end_date=datetime.datetime.utcnow().isoformat(),
-    status="test",
-    info_text="stuff",
-)
-
-dummy_helper = models.Helper(
-    first_name="foo",
-    last_name="bar",
-    email="bla@example.com",
-    qualification_id="bla",
-    work_experience_in_years=1,
-    activity_ids=[],
-)
-
-dummy_hospital = models.Hospital(name="test", address="test")
-
-
 def test_nonexistent_profile(test_client, db_session, mock_auth):
     """Check that a non-existent profile gives the correct response."""
     response = test_client.get("/profile")
@@ -39,84 +18,13 @@ def test_nonexistent_profile(test_client, db_session, mock_auth):
     ), f"Expected profile not to exist yet. {response.text}"
 
 
-def test_hospital_profile(test_client, db_session, mock_auth):
-    """Test a hospital profile workflow."""
-    base_hospital_profile = {"profileType": "hospital", "email": "me@example.com"}
-
-    # make sure that profile with missing data isn't accepted
-    response = test_client.post("/profile", json=base_hospital_profile)
-    assert response.status_code == 400, "we are missing our hospital profile here"
-
-    # make sure that profile with missing hospital isn't accepted
-    nonexistent_hospital_profile = {
-        **base_hospital_profile,
-        "hospital_id": str(ObjectId()),
-    }
-    response = test_client.post("/profile", json=nonexistent_hospital_profile)
-    assert response.status_code == 404
-
-    # try the same for a hospital endpoint (create the hospital first)
-    response = test_client.post("/hospitals", data=dummy_hospital.json())
-    assert response.status_code == 200
-    hospital_id = response.json()["id"]
-    hospital_profile = {**base_hospital_profile, "hospitalId": hospital_id}
-    response = test_client.post("/profile", json=hospital_profile)
-    assert response.status_code == 200
-    response_json = response.json()
-    assert response_json["userId"] == mock_auth["sub"]
-    assert response_json["email"] == "me@example.com"
-    assert response_json["profileType"] == "hospital"
-    assert (
-        response_json.get("helperId") is None
-    ), "No helper id expected for hospital profile"
-    assert (
-        response_json["hospitalId"] == hospital_id
-    ), "expected hospital id to be present"
-
-    # make sure we can't repose once a profile is created
-    response = test_client.post("/profile", json=hospital_profile)
-    assert response.status_code == 409
-
-
-def test_helper_profile(test_client, db_session, mock_auth):
-    """Test a helper profile workflow."""
-    base_helper_profile = {"profileType": "helper", "email": "me@example.com"}
-
-    # post incomplete profiles
-    response = test_client.post("/profile", json=base_helper_profile)
-    assert response.status_code == 400, "we are missing our helper profile here"
-
-    # now lets try and post working profiles
-    helper_profile = {**base_helper_profile, "helper": dummy_helper.dict()}
-    response = test_client.post("/profile", json=helper_profile)
-    assert response.status_code == 200
-    response_json = response.json()
-    assert response_json["userId"] == mock_auth["sub"]
-    assert response_json["email"] == "me@example.com"
-    assert response_json["profileType"] == "helper"
-    assert response_json["helperId"], "expected helper id to be present"
-
-    # make sure we can't repose once a profile is created
-    response = test_client.post("/profile", json=helper_profile)
-    assert response.status_code == 409
-
-
-def test_create_match(test_client, db_session, mock_auth):
-    """Test creating a match."""
-    response = test_client.post("/matches", data=dummy_match.json())
-    assert response.status_code == 200
-
-
 def test_auth(auth_token, test_client, db_session):
     """Test authentication validation.
 
     Skipped if authentication token is missing.
     """
     query_response = test_client.post(
-        "/graphql",
-        json={
-            "query": "query {hospitals {name id}}"
-        },
+        "/graphql", json={"query": "query {hospitals {name id}}"},
     )
     assert query_response.status_code == 200
 
@@ -124,13 +32,17 @@ def test_auth(auth_token, test_client, db_session):
 def test_hospitals_query(test_client, db_session, mock_auth, mock_data):
     """Test listing of hospitals."""
     query_response = test_client.post(
-        "/graphql",
-        json={
-            "query": "query {hospitals {name id}}"
-        },
+        "/graphql", json={"query": "query {hospitals {name id}}"},
     )
     assert query_response.json() == {
-        "data": {"hospitals": [{"name": mock_data['hospitals'][0].name, "id": mock_data['hospitals'][0].id}]}
+        "data": {
+            "hospitals": [
+                {
+                    "name": mock_data["hospitals"][0].name,
+                    "id": mock_data["hospitals"][0].id,
+                }
+            ]
+        }
     }
 
 
@@ -178,7 +90,9 @@ def test_create_hospital_profile(test_client, db_session, mock_auth, mock_data):
                 }
             }
         }
-        """.replace("__HOSPITAL_ID__", mock_data['hospitals'][0].id)
+        """.replace(
+                "__HOSPITAL_ID__", mock_data["hospitals"][0].id
+            )
         },
     )
     actual = query_response.json()
@@ -187,14 +101,16 @@ def test_create_hospital_profile(test_client, db_session, mock_auth, mock_data):
             "createHospitalProfile": {
                 "userId": mock_auth.sub,
                 "type": "Hospital",
-                "hospital": {"name": mock_data['hospitals'][0].name},
+                "hospital": {"name": mock_data["hospitals"][0].name},
             }
         }
     }
     assert actual == expected
 
 
-def test_update_helper(test_client, db_session, mock_auth, mock_data, mock_helper_profile):
+def test_update_helper(
+    test_client, db_session, mock_auth, mock_data, mock_helper_profile
+):
     query_response = test_client.post(
         "/graphql",
         json={
@@ -209,15 +125,13 @@ def test_update_helper(test_client, db_session, mock_auth, mock_data, mock_helpe
         },
     )
     actual = query_response.json()
-    expected = {
-        "data": {
-            "updateHelper": {'firstName': 'new foo', "lastName": "bar"}
-        }
-    }
+    expected = {"data": {"updateHelper": {"firstName": "new foo", "lastName": "bar"}}}
     assert actual == expected
 
 
-def test_update_hospital(test_client, db_session, mock_auth, mock_data, mock_hospital_profile):
+def test_update_hospital(
+    test_client, db_session, mock_auth, mock_data, mock_hospital_profile
+):
     query_response = test_client.post(
         "/graphql",
         json={
@@ -234,9 +148,7 @@ def test_update_hospital(test_client, db_session, mock_auth, mock_data, mock_hos
     actual = query_response.json()
     expected = {
         "data": {
-            "updateHospital":
-                {"id": mock_data['hospitals'][0].id, "name": "new name"},
-
+            "updateHospital": {"id": mock_data["hospitals"][0].id, "name": "new name"},
         }
     }
     assert actual == expected
@@ -320,3 +232,112 @@ def test_nested_helper_query(
         }
     }
     assert actual == expected
+
+
+def test_request_helper(test_client, db_session, mock_data, mock_hospital_profile):
+    """Test creating a match."""
+    query_response = test_client.post(
+        "/graphql",
+        json={
+            "query": """
+        mutation {
+            requestHelper(helperId: "__HELPER_ID__", personnelRequirementId: "__PR_ID__", infoText: "blabla") {
+                personnelRequirement { id }
+                helper { firstName }
+                status
+             }
+        }
+        """.replace(
+                "__PR_ID__", mock_data["personnel_requirements"][0].id
+            ).replace(
+                "__HELPER_ID__", mock_data["helpers"][0].id
+            )
+        },
+    )
+    actual = query_response.json()
+    expected = {
+        "data": {
+            "requestHelper": {
+                "personnelRequirement": {"id": mock_data["personnel_requirements"][0].id},
+                "helper": {"firstName": mock_data["helpers"][0].first_name},
+                "status": "Pending",
+            }
+        }
+    }
+    assert actual == expected
+
+
+def test_update_request(test_client, db_session, mock_data, mock_helper_profile):
+    """Test creating a match."""
+    query_response = test_client.post(
+        "/graphql",
+        json={
+            "query": """
+        mutation {
+            requestHelper(matchId: "__MATCH_ID__", infoText: "blabla") {
+                id
+                helper { firstName }
+             }
+        }
+        """.replace(
+                "__MATCH_ID__", mock_data["matches"][0].id
+            )
+        },
+    )
+    actual = query_response.json()
+    expected = {
+        "data": {
+            "requestHelper": {
+                "personnelRequirement": {
+                    "id": mock_data["personnel_requirements"][0].id
+                },
+                "helper": {"name": mock_data["helpers"][0].first_name},
+            }
+        }
+    }
+    assert actual == expected
+
+
+def test_set_personnel_requirement(
+    test_client, db_session, mock_data, mock_hospital_profile
+):
+    """Test creating a match."""
+    query_response = test_client.post(
+        "/graphql",
+        json={
+            "query": """
+        mutation {
+            setPersonnelRequirement(activityId: "activity1", countRequired: 5) {
+                activityId
+                hospital {
+                    personnelRequirements {
+                        activityId
+                        countRequired
+                    }
+                }
+             }
+        }
+        """
+        },
+    )
+    actual = query_response.json()
+    expected = {
+        "data": {
+            "setPersonnelRequirement": {
+                "activityId": "activity1",
+                "hospital": {
+                    "personnelRequirements": [
+                        {
+                            "activityId": mock_data["personnel_requirements"][
+                                0
+                            ].activity_id,
+                            "countRequired": 0,
+                        },
+                        {"activityId": "activity1", "countRequired": 5},
+                    ]
+                },
+            }
+        }
+    }
+    assert actual == expected
+

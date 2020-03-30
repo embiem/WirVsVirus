@@ -64,7 +64,7 @@ class PersonnelRequirement(db.MongoModel):
     """Personnel requirement for help."""
     hospital_id: db.ObjectIdStr
     activity_id: str
-    value: int = 1
+    count_required: int = 0
     _collection = 'personnel_requirements'
 
 
@@ -72,10 +72,10 @@ class Match(db.MongoModel):
     """Match model."""
     helper_id: db.ObjectIdStr
     personnel_requirement_id: db.ObjectIdStr
-    start_date: str
-    end_date: str
-    status: str
-    info_text: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    status: MatchStatus = MatchStatus.pending
+    info_text: str = ""
     _collection = 'matches'
 
 

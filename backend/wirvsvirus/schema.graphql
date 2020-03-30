@@ -74,8 +74,8 @@ type Match {
   id: ID
   helper: Helper!
   personnelRequirement: PersonnelRequirement!
-  startDate: String!
-  endDate: String!
+  startDate: String
+  endDate: String
   status: MatchStatus!
   infoText: String
 }

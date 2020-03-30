@@ -193,7 +193,7 @@ def test_propose_matching_endpoint(test_client, db_session, mock_auth):
             hospital_id = response.json()["id"]
             for activity, value in h["demand"].items():
                 requirement = PersonnelRequirement(
-                    hospital_id=hospital_id, activity_id=activity, value=value
+                    hospital_id=hospital_id, activity_id=activity, count_required=value
                 )
                 response = test_client.post(
                     "/personnel_requirements", data=requirement.json()
