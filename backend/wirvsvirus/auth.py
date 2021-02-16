@@ -8,7 +8,7 @@ from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import JoseError
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from starlette.requests import Request
 from starlette.status import HTTP_401_UNAUTHORIZED
 
@@ -28,6 +28,22 @@ class JWTAuthorizationCredentials(BaseModel):
     claims: Dict[str, str]
     signature: str
     message: str
+
+
+class JWTPayload(BaseModel):
+    iss: str
+    sub: str
+    aud: List[str] = []
+    iat: int
+    exp: int
+    azp: str = ""
+    scope: str = ""
+    token: str = ""  # original jwt token
+
+    @property
+    def scopes(self) -> List[str]:
+        """Scopes as list."""
+        [s.strip() for s in self.scope.split(" ")]
 
 
 @functools.lru_cache()
@@ -62,7 +78,11 @@ class Auth(HTTPBearer):
     def decode_jwt(self, token: str) -> JWTClaims:
         """Verify jwt."""
         try:
-            payload = jwt.decode(token, self.jwks.keys, claims_options={"iss": {"value": settings.auth_issuer}})
+            payload = jwt.decode(
+                token,
+                self.jwks.keys,
+                claims_options={"iss": {"value": settings.auth_issuer}},
+            )
             payload.validate()
         except JoseError as e:
             breakpoint()
@@ -70,44 +90,45 @@ class Auth(HTTPBearer):
 
         return payload
 
-    async def __call__(self, request: Request) -> Optional[dict]:
+    async def __call__(self, request: Request) -> JWTPayload:  # type: ignore
         if not settings.auth_enabled:
-            return {}
+            return JWTPayload(sub="noone", iss="noone", iat=0, exp=0)
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
         token = credentials.credentials
         payload = self.decode_jwt(token)
-        if not payload.get('sub'):
-            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail='Needs "sub"')
-        return payload
+        try:
+            return JWTPayload(**payload, token=token)
+        except ValidationError as e:
+            breakpoint()
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED, detail=f"Invalid jwt: {e.args[0]}"
+            )
+
+
+class UserInfo(BaseModel):
+    """User info model based on auth0 userinfo response.
+
+    See: https://auth0.com/docs/api/authentication?http#get-user-info
+    """
+
+    sub: str
+    email: str
+    email_verified: bool = False
+    phone_number: Optional[str]
+    locale: Optional[str]
+    name: Optional[str]
+    given_name: Optional[str]
+    family_name: Optional[str]
+    middle_name: Optional[str]
+
+
+async def get_user_info(token: str):
+    """Obtain userinfo from auth0 given an access token."""
+    response = requests.get(
+        settings.auth_issuer + "userinfo", headers={"Authorization": f"Bearer {token}"}
+    )
+    user_info = UserInfo.parse_obj(response.json())
+    return user_info
 
 
 auth = Auth()
-
-
-async def current_profile(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer), jwt_payload: dict = Depends(auth)) -> models.Profile:
-    """Get current profile.
-
-    If a profile is not available, create one.
-    """
-    user_id = jwt_payload.get('sub')
-    if not user_id:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED,
-                            detail='Invalid token payload. Must have valid user id')
-    profiles = db.get_database().profiles
-    result = await profiles.find_one({'user_id': jwt_payload['sub']})
-
-    if result:
-        profile = models.Profile(**result)
-    else:
-        token = credentials.credentials
-        # TODO: replace with httpx if too slow, as not async
-        response = requests.get(settings.auth_issuer + 'userinfo', headers={'Authorization': f'Bearer {token}'})
-        user_info = response.json()
-        if not user_info.get('email_verified'):
-            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED,
-                                detail='Email not verified.')
-        base_profile = models.BaseProfile(user_id=user_id, email=user_info['email'])
-        created = crud.create_item('profiles', base_profile)
-        profile = models.Profile(**created)
-
-    return profile
